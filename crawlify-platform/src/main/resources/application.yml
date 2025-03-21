@@ -1,0 +1,34 @@
+server:
+  port: 4444
+
+spring:
+  application:
+    name: crawlify-platform
+  datasource:
+    url: jdbc:mysql://localhost:3306/crawlify?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 20000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      minimum-idle: 10
+      maximum-pool-size: 30
+      pool-name: crawlify-platform
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 2000
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
