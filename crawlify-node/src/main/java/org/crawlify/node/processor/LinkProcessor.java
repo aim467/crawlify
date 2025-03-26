@@ -5,7 +5,9 @@ import org.crawlify.node.entity.SpiderTask;
 import org.crawlify.node.entity.WebsiteInfo;
 import org.crawlify.node.entity.WebsiteLink;
 import org.crawlify.node.service.WebsiteLinkService;
+import org.crawlify.node.util.LinkExtractor;
 import org.crawlify.node.util.SpringContextUtil;
+import org.springframework.util.CollectionUtils;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.processor.PageProcessor;
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -38,14 +41,13 @@ public class LinkProcessor implements PageProcessor {
 
     @Override
     public void process(Page page) {
-        // 提取所有链接
-        List<String> links = page.getHtml().links().all();
-
+        Set<String> links;
+        links = LinkExtractor.extractLinks(page.getRequest().getUrl());
         // 过滤并处理链接
         List<String> targetRequests = new ArrayList<>();
         List<String> externalLinks = new ArrayList<>();
 
-        for (String link : links) {
+        links.forEach(link -> {
             try {
                 String domain = getDomain(link);
                 if (domain != null && domain.equals(websiteInfo.getDomain())) {
@@ -54,16 +56,15 @@ public class LinkProcessor implements PageProcessor {
                     externalLinks.add(link);
                 }
             } catch (Exception e) {
-                // 处理非法URL
+                log.error("Invalid URL: {}", link, e); // 处理非法URL
             }
-        }
+        });
 
         // 添加同域名请求
         page.addTargetRequests(targetRequests);
 
         // 保存所有链接到数据库
-        saveLinks(page.getUrl().get(), websiteInfo.getId());
-        saveExternalLinks(externalLinks, websiteInfo.getId());
+        saveLinks(targetRequests, externalLinks, websiteInfo.getId());
     }
 
     private String getDomain(String url) throws URISyntaxException {
@@ -72,28 +73,27 @@ public class LinkProcessor implements PageProcessor {
         return domain.startsWith("www.") ? domain.substring(4) : domain;
     }
 
-    private void saveLinks(String url, Integer websiteId) {
-        WebsiteLink websiteLink = new WebsiteLink();
-        websiteLink.setUrl(url);
-        websiteLink.setWebsiteId(websiteId);
-        websiteLink.setType(1);
-        websiteLink.setCreatedAt(LocalDateTime.now());
-        websiteLink.setUpdatedAt(LocalDateTime.now());
-        websiteLinkService.batchSaveWebsiteLink(Arrays.asList(websiteLink));
-    }
-
-    private void saveExternalLinks(List<String> urls, Integer websiteId) {
+    private void saveLinks(List<String> internalUrls, List<String> externalUrls, Integer websiteId) {
         List<WebsiteLink> websiteLinks = new ArrayList<>();
-        for (String url : urls) {
-            WebsiteLink websiteLink = new WebsiteLink();
-            websiteLink.setUrl(url);
-            websiteLink.setWebsiteId(websiteId);
-            websiteLink.setType(1);
-            websiteLink.setCreatedAt(LocalDateTime.now());
-            websiteLink.setUpdatedAt(LocalDateTime.now());
-            websiteLinks.add(websiteLink);
+
+        internalUrls.forEach(url -> addLinkToWebsiteLinks(websiteLinks, url, websiteId, 1));
+        externalUrls.forEach(url -> addLinkToWebsiteLinks(websiteLinks, url, websiteId, 2));
+
+        if (CollectionUtils.isEmpty(websiteLinks)) {
+            return;
         }
         websiteLinkService.batchSaveWebsiteLink(websiteLinks);
+    }
+
+    private void addLinkToWebsiteLinks(List<WebsiteLink> websiteLinks, String url, Integer websiteId, int type) {
+        WebsiteLink websiteLink = new WebsiteLink();
+        LocalDateTime now = LocalDateTime.now();
+        websiteLink.setUrl(url);
+        websiteLink.setWebsiteId(websiteId);
+        websiteLink.setType(type);
+        websiteLink.setCreatedAt(now);
+        websiteLink.setUpdatedAt(now);
+        websiteLinks.add(websiteLink);
     }
 
     @Override

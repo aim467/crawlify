@@ -10,6 +10,6 @@
         <foreach collection="list" item="link" separator=",">
             (#{link.url}, #{link.websiteId}, #{link.type}, #{link.createdAt}, #{link.updatedAt})
         </foreach>
-        on duplicate key update updated_at = now()
+        on duplicate key update updated_at = values(updated_at)
     </insert>
 </mapper>
