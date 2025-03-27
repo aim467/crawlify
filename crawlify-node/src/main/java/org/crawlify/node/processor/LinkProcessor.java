@@ -1,10 +1,10 @@
 package org.crawlify.node.processor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.crawlify.node.entity.SpiderTask;
-import org.crawlify.node.entity.WebsiteInfo;
-import org.crawlify.node.entity.WebsiteLink;
-import org.crawlify.node.service.WebsiteLinkService;
+import org.crawlify.common.entity.SpiderTask;
+import org.crawlify.common.entity.WebsiteInfo;
+import org.crawlify.common.entity.WebsiteLink;
+import org.crawlify.common.service.WebsiteLinkService;
 import org.crawlify.node.util.LinkExtractor;
 import org.crawlify.node.util.SpringContextUtil;
 import org.springframework.util.CollectionUtils;
@@ -16,7 +16,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;

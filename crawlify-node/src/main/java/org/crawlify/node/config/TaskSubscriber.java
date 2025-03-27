@@ -2,10 +2,10 @@ package org.crawlify.node.config;
 
 import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
-import org.crawlify.node.entity.SpiderTask;
-import org.crawlify.node.entity.WebsiteInfo;
+import org.crawlify.common.entity.SpiderTask;
+import org.crawlify.common.entity.WebsiteInfo;
 import org.crawlify.node.processor.LinkProcessor;
-import org.crawlify.node.service.WebsiteInfoService;
+import org.crawlify.common.service.WebsiteInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;

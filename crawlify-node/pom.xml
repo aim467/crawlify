@@ -4,9 +4,16 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.crawlify</groupId>
     <artifactId>crawlify-node</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>crawlify-node</name>
     <description>crawlify-node</description>
+
+    <parent>
+        <artifactId>crawlify</artifactId>
+        <groupId>org.crawlify</groupId>
+        <version>0.0.1</version>
+    </parent>
+
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -58,18 +65,12 @@
             <artifactId>webmagic-extension</artifactId>
             <version>1.0.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.crawlify</groupId>
+            <artifactId>crawlify-common</artifactId>
+        </dependency>
     </dependencies>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <build>
         <plugins>

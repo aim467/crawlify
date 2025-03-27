@@ -1,8 +1,8 @@
 package org.crawlify.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import org.crawlify.platform.entity.WebsiteInfo;
-import org.crawlify.platform.service.WebsiteInfoService;
+import org.crawlify.common.entity.WebsiteInfo;
+import org.crawlify.common.service.WebsiteInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

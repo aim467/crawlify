@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.crawlify.common.mapper.WebsiteLinkMapper">
+    <insert id="batchInsertOrUpdate">
+        insert ignore into website_link (url, website_id, `type`, created_at, updated_at)
+        values
+        <foreach collection="list" item="link" separator=",">
+            (#{link.url}, #{link.websiteId}, #{link.type}, #{link.createdAt}, #{link.updatedAt})
+        </foreach>
+        on duplicate key update updated_at = values(updated_at)
+    </insert>
+</mapper>

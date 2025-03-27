@@ -1,9 +1,9 @@
 package org.crawlify.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import org.crawlify.platform.entity.R;
-import org.crawlify.platform.entity.SpiderTask;
-import org.crawlify.platform.service.SpiderTaskService;
+import org.crawlify.common.entity.result.R;
+import org.crawlify.common.entity.SpiderTask;
+import org.crawlify.common.service.SpiderTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
