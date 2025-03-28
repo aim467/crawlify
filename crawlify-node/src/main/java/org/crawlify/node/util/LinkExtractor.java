@@ -78,9 +78,8 @@ public class LinkExtractor {
                 }
             }
 
-
         } catch (Exception e) {
-            log.error("解析 URL 失败: " + pageUrl + "，错误信息: " + e.getMessage());
+            log.error("解析 URL 失败: {}，错误信息: {}", pageUrl, e.getMessage());
         }
         return allLinks;
     }

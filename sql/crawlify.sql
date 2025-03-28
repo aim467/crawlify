@@ -53,6 +53,7 @@ CREATE TABLE `website_link`  (
   `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `website_id` int NULL DEFAULT NULL,
   `type` tinyint(1) NULL DEFAULT NULL,
+  `ext_link` tinyint(1) COMMENT '外部链接(1=true, 0=false)',
   `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,

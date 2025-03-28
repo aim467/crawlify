@@ -16,9 +16,11 @@ public class WebsiteLink {
     private Long id;
     private String url;
     private Integer websiteId;
+    private Boolean extLink;
     private Integer type;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
+
 }

@@ -24,14 +24,12 @@ import java.util.regex.Pattern;
 public class LinkProcessor implements PageProcessor {
     private final WebsiteInfo websiteInfo;
     private final SpiderTask spiderTask;
-    private final Pattern domainPattern;
     private final WebsiteLinkService websiteLinkService;
 
 
     public LinkProcessor(WebsiteInfo websiteInfo, SpiderTask spiderTask) {
         this.websiteInfo = websiteInfo;
         this.spiderTask = spiderTask;
-        this.domainPattern = Pattern.compile(Pattern.quote(websiteInfo.getDomain()));
         this.websiteLinkService = SpringContextUtil.getBean(WebsiteLinkService.class);
     }
 
@@ -47,36 +45,40 @@ public class LinkProcessor implements PageProcessor {
         List<String> externalLinks = new ArrayList<>();
 
         links.forEach(link -> {
-            try {
-                String domain = getDomain(link);
-                if (domain != null && domain.equals(websiteInfo.getDomain())) {
-                    targetRequests.add(link);
-                } else {
-                    externalLinks.add(link);
-                }
-            } catch (Exception e) {
-                log.error("Invalid URL: {}", link, e); // 处理非法URL
+            if (getDomain(link, websiteInfo.getDomain())) {
+                targetRequests.add(link);
+            } else {
+                externalLinks.add(link);
             }
         });
 
         // 添加同域名请求
         page.addTargetRequests(targetRequests);
 
+        // 此页面也保存到数据库
+        targetRequests.add(page.getUrl().toString());
+
         // 保存所有链接到数据库
         saveLinks(targetRequests, externalLinks, websiteInfo.getId());
     }
 
-    private String getDomain(String url) throws URISyntaxException {
-        URI uri = new URI(url);
-        String domain = uri.getHost();
-        return domain.startsWith("www.") ? domain.substring(4) : domain;
+    private boolean getDomain(String url, String domain) {
+        String regex = "^https?://" +
+                "(?:[a-zA-Z0-9-]+\\.)*" + // 子域名部分（非捕获组）
+                Pattern.quote(domain) +    // 转义目标域名中的特殊字符
+                "(?::\\d+)?" +             // 可选的端口号
+                "(?:/|$|\\?)";             // 路径开始或结束
+
+        return Pattern.compile(regex, Pattern.CASE_INSENSITIVE)
+                .matcher(url)
+                .find();
     }
 
     private void saveLinks(List<String> internalUrls, List<String> externalUrls, Integer websiteId) {
         List<WebsiteLink> websiteLinks = new ArrayList<>();
 
-        internalUrls.forEach(url -> addLinkToWebsiteLinks(websiteLinks, url, websiteId, 1));
-        externalUrls.forEach(url -> addLinkToWebsiteLinks(websiteLinks, url, websiteId, 2));
+        internalUrls.forEach(url -> addLinkToWebsiteLinks(websiteLinks, url, websiteId, false));
+        externalUrls.forEach(url -> addLinkToWebsiteLinks(websiteLinks, url, websiteId, true));
 
         if (CollectionUtils.isEmpty(websiteLinks)) {
             return;
@@ -84,12 +86,12 @@ public class LinkProcessor implements PageProcessor {
         websiteLinkService.batchSaveWebsiteLink(websiteLinks);
     }
 
-    private void addLinkToWebsiteLinks(List<WebsiteLink> websiteLinks, String url, Integer websiteId, int type) {
+    private void addLinkToWebsiteLinks(List<WebsiteLink> websiteLinks, String url, Integer websiteId, Boolean type) {
         WebsiteLink websiteLink = new WebsiteLink();
         LocalDateTime now = LocalDateTime.now();
         websiteLink.setUrl(url);
         websiteLink.setWebsiteId(websiteId);
-        websiteLink.setType(type);
+        websiteLink.setExtLink(type);
         websiteLink.setCreatedAt(now);
         websiteLink.setUpdatedAt(now);
         websiteLinks.add(websiteLink);
