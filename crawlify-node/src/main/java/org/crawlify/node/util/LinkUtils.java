@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 @Slf4j
-public class LinkExtractor {
+public class LinkUtils {
     private static final Pattern ABSOLUTE_URL_PATTERN = Pattern.compile("^[a-zA-Z][a-zA-Z0-9+-.]*://.*");
     private static final Pattern PROTOCOL_RELATIVE_URL_PATTERN = Pattern.compile("^//.*");
 
@@ -84,12 +84,6 @@ public class LinkExtractor {
         return allLinks;
     }
 
-    /**
-     * 判断 URL 地址的类型。
-     *
-     * @param urlString 要判断类型的 URL 地址
-     * @return URL 的类型，例如 "webpage", "css", "javascript", "image", "other", "unknown"
-     */
     public static String getUrlType(String urlString) {
         if (urlString == null || urlString.trim().isEmpty()) {
             return "unknown";
@@ -97,44 +91,66 @@ public class LinkExtractor {
 
         String lowerCaseUrl = urlString.toLowerCase();
 
-        // 基于 URL 扩展名进行初步判断
-        if (lowerCaseUrl.endsWith(".html") || lowerCaseUrl.endsWith(".htm") || lowerCaseUrl.endsWith("/")) {
+        // 基于扩展名判断
+        if (lowerCaseUrl.matches(".+\\.(html?|php|jsp|asp)$") || lowerCaseUrl.endsWith("/")) {
             return "webpage";
         } else if (lowerCaseUrl.endsWith(".css")) {
             return "css";
         } else if (lowerCaseUrl.endsWith(".js")) {
             return "javascript";
-        } else if (lowerCaseUrl.endsWith(".jpg") || lowerCaseUrl.endsWith(".jpeg") ||
-                lowerCaseUrl.endsWith(".png") || lowerCaseUrl.endsWith(".gif") ||
-                lowerCaseUrl.endsWith(".svg") || lowerCaseUrl.endsWith(".ico") ||
-                lowerCaseUrl.endsWith(".webp")) {
+        } else if (lowerCaseUrl.matches(".+\\.(jpe?g|png|gif|svg|ico|webp)$")) {
             return "image";
+        } else if (lowerCaseUrl.matches(".+\\.(pdf|xlsx?|csv|pptx?|docx?|md|rtf|key)$")) {
+            return "document";
+        } else if (lowerCaseUrl.matches(".+\\.(woff|woff2|ttf|eot)$")) {
+            return "font";
+        } else if (lowerCaseUrl.matches(".+\\.(mp4|avi|mov|mkv)$")) {
+            return "video";
+        } else if (lowerCaseUrl.matches(".+\\.(zip|rar|7z|tar|gz|bz2|tgz|tbz2)$")) {
+            return "archive"; // 新增压缩文件类型
+        } else if (lowerCaseUrl.matches(".+\\.(json|xml)$")) {
+            return "data";
         }
 
-        // 尝试通过 Content-Type 头进行判断 (发送 HEAD 请求)
+        // 通过HEAD请求补充判断
         try {
             URL url = new URL(urlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("HEAD");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
             connection.connect();
 
             String contentType = connection.getContentType();
             if (contentType != null) {
-                contentType = contentType.toLowerCase();
-                if (contentType.contains("text/html")) {
-                    return "webpage";
+                contentType = contentType.split(";")[0].trim().toLowerCase();
+                if (contentType.contains("text/html")) return "webpage";
+                if (contentType.contains("text/css")) return "css";
+                if (contentType.contains("javascript")) return "javascript";
+                if (contentType.startsWith("image/")) return "image";
+                if (contentType.equals("application/pdf") ||
+                        contentType.equals("application/vnd.ms-excel") ||
+                        contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
+                    return "document";
                 }
+                if (contentType.equals("application/json")) return "data";
+                // 新增压缩文件的MIME类型判断
+                if (contentType.equals("application/zip") ||
+                        contentType.equals("application/x-rar-compressed") ||
+                        contentType.equals("application/x-7z-compressed") ||
+                        contentType.equals("application/x-tar") ||
+                        contentType.equals("application/gzip") ||
+                        contentType.equals("application/x-bzip2")) {
+                    return "archive";
+                }
+                // 补充其他MIME类型...
             }
             connection.disconnect();
-
-        } catch (MalformedURLException e) {
-            System.err.println("无效的 URL: " + urlString);
         } catch (IOException e) {
-            // HEAD 请求失败，可能是网络问题或服务器不允许 HEAD 请求
-            System.err.println("获取 URL 类型失败 (HEAD 请求): " + urlString + "，错误信息: " + e.getMessage());
+            return "unknown";
         }
 
-        return "other"; // 默认返回 "other" 如果无法确定类型
+        return "other";
     }
 
     /**

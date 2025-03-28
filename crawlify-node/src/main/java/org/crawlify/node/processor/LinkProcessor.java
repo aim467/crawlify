@@ -5,7 +5,7 @@ import org.crawlify.common.entity.SpiderTask;
 import org.crawlify.common.entity.WebsiteInfo;
 import org.crawlify.common.entity.WebsiteLink;
 import org.crawlify.common.service.WebsiteLinkService;
-import org.crawlify.node.util.LinkExtractor;
+import org.crawlify.node.util.LinkUtils;
 import org.crawlify.node.util.SpringContextUtil;
 import org.springframework.util.CollectionUtils;
 import us.codecraft.webmagic.Page;
@@ -39,7 +39,7 @@ public class LinkProcessor implements PageProcessor {
     @Override
     public void process(Page page) {
         Set<String> links;
-        links = LinkExtractor.extractLinks(page.getRequest().getUrl());
+        links = LinkUtils.extractLinks(page.getRequest().getUrl());
         // 过滤并处理链接
         List<String> targetRequests = new ArrayList<>();
         List<String> externalLinks = new ArrayList<>();
