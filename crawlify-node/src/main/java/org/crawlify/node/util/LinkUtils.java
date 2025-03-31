@@ -6,10 +6,13 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
@@ -110,8 +113,10 @@ public class LinkUtils {
 
         String lowerCaseUrl = urlString.toLowerCase();
 
+        UriComponents build = UriComponentsBuilder.fromHttpUrl(urlString).build();
+        String path = build.getPath();
         // 基于扩展名判断
-        if (lowerCaseUrl.matches(".+\\.(html?|php|jsp|asp)$") || lowerCaseUrl.endsWith("/")) {
+        if (path.matches(".+\\.(html?|php|jsp|asp)$") || lowerCaseUrl.endsWith("/")) {
             return "webpage";
         } else if (lowerCaseUrl.endsWith(".css")) {
             return "css";
