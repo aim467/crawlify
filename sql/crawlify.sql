@@ -11,7 +11,7 @@
  Target Server Version : 80100
  File Encoding         : 65001
 
- Date: 21/03/2025 15:34:51
+ Date: 31/03/2025 17:50:21
 */
 
 SET NAMES utf8mb4;
@@ -52,12 +52,12 @@ CREATE TABLE `website_link`  (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `website_id` int NULL DEFAULT NULL,
-  `type` tinyint(1) NULL DEFAULT NULL,
-  `ext_link` tinyint(1) COMMENT '外部链接(1=true, 0=false)',
+  `url_type` tinyint NULL DEFAULT NULL,
   `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NULL DEFAULT NULL,
+  `ext_link` tinyint NULL DEFAULT NULL COMMENT '外部链接(1=true, 0=false)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `website_link_pk`(`website_id` ASC, `url` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 30021 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 17042 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

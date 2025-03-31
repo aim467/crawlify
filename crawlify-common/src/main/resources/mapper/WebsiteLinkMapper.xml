@@ -5,10 +5,10 @@
 
 <mapper namespace="org.crawlify.common.mapper.WebsiteLinkMapper">
     <insert id="batchInsertOrUpdate">
-        insert ignore into website_link (url, website_id, ext_link, created_at, updated_at)
+        insert ignore into website_link (url, website_id, ext_link, url_type, created_at, updated_at)
         values
         <foreach collection="list" item="link" separator=",">
-            (#{link.url}, #{link.websiteId}, #{link.extLink}, #{link.createdAt}, #{link.updatedAt})
+            (#{link.url}, #{link.websiteId}, #{link.extLink}, #{link.urlType}, #{link.createdAt}, #{link.updatedAt})
         </foreach>
         on duplicate key update updated_at = values(updated_at)
     </insert>

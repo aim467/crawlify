@@ -93,6 +93,7 @@ public class LinkProcessor implements PageProcessor {
         websiteLink.setWebsiteId(websiteId);
         websiteLink.setExtLink(type);
         websiteLink.setCreatedAt(now);
+        websiteLink.setUrlType(LinkUtils.typeMapping.get(LinkUtils.getUrlType(url)));
         websiteLink.setUpdatedAt(now);
         websiteLinks.add(websiteLink);
     }

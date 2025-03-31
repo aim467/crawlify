@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -84,6 +85,24 @@ public class LinkUtils {
         return allLinks;
     }
 
+    public static Map<String, Integer> typeMapping = Map.of(
+            "webpage", 1,
+            "css", 2,
+            "javascript", 3,
+            "image", 4,
+            "document", 5,
+            "font", 6,
+            "video", 7,
+            "archive", 8,
+            "data", 9,
+            "unknown", 0
+    );
+
+    /**
+     * 获取 URL 的类型
+     * @param urlString URL
+     * @return 类型
+     */
     public static String getUrlType(String urlString) {
         if (urlString == null || urlString.trim().isEmpty()) {
             return "unknown";
@@ -150,7 +169,7 @@ public class LinkUtils {
             return "unknown";
         }
 
-        return "other";
+        return "unknown";
     }
 
     /**
