@@ -1,9 +1,13 @@
 package org.crawlify.platform.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.crawlify.common.entity.WebsiteInfo;
+import org.crawlify.common.entity.query.WebsiteInfoQuery;
+import org.crawlify.common.entity.result.R;
 import org.crawlify.common.service.WebsiteInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,28 +18,31 @@ public class WebsiteInfoController {
     private WebsiteInfoService websiteInfoService;
 
     @PostMapping
-    public boolean save(@RequestBody WebsiteInfo websiteInfo) {
-        return websiteInfoService.save(websiteInfo);
+    public R<Boolean> save(@RequestBody WebsiteInfo websiteInfo) {
+        return R.ok(websiteInfoService.save(websiteInfo));
     }
 
     @DeleteMapping("/{id}")
-    public boolean delete(@PathVariable Long id) {
-        return websiteInfoService.removeById(id);
+    public R<Boolean> delete(@PathVariable Long id) {
+        return R.ok(websiteInfoService.removeById(id));
     }
 
     @PutMapping
-    public boolean update(@RequestBody WebsiteInfo websiteInfo) {
-        return websiteInfoService.updateById(websiteInfo);
+    public R<Boolean> update(@RequestBody WebsiteInfo websiteInfo) {
+        return R.ok(websiteInfoService.updateById(websiteInfo));
     }
 
     @GetMapping("/{id}")
-    public WebsiteInfo getById(@PathVariable Long id) {
-        return websiteInfoService.getById(id);
+    public R<WebsiteInfo> getById(@PathVariable Long id) {
+        return R.ok(websiteInfoService.getById(id));
     }
 
     @GetMapping("/list")
-    public Page<WebsiteInfo> list(@RequestParam(defaultValue = "1") int page,
-                                  @RequestParam(defaultValue = "10") int size) {
-        return websiteInfoService.page(new Page<>(page, size));
+    public Page<WebsiteInfo> list(WebsiteInfoQuery query) {
+        LambdaQueryWrapper<WebsiteInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(StringUtils.hasText(query.getName()), WebsiteInfo::getName, query.getName());
+        wrapper.like(StringUtils.hasText(query.getBaseUrl()), WebsiteInfo::getBaseUrl, query.getBaseUrl());
+        wrapper.like(StringUtils.hasText(query.getDomain()), WebsiteInfo::getDomain, query.getDomain());
+        return websiteInfoService.page(new Page<>(query.getPage(), query.getSize()), wrapper);
     }
 }
