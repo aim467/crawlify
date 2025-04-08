@@ -21,6 +21,8 @@ public class WebsiteLinkServiceImpl extends ServiceImpl<WebsiteLinkMapper, Websi
         LambdaQueryWrapper<WebsiteLink> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Objects.nonNull(query.getWebsiteId()), WebsiteLink::getWebsiteId, query.getWebsiteId());
         wrapper.like(StringUtils.hasText(query.getUrl()), WebsiteLink::getUrl, query.getUrl());
+        wrapper.eq(Objects.nonNull(query.getExtLink()), WebsiteLink::getExtLink, query.getExtLink());
+        wrapper.eq(Objects.nonNull(query.getUrlType()), WebsiteLink::getUrlType, query.getUrlType());
         wrapper.orderByDesc(WebsiteLink::getCreatedAt);
 
         Page<WebsiteLink> websiteLinkPage = baseMapper.selectPage(new Page<>(query.getPage(), query.getSize()), wrapper);
