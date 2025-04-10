@@ -5,7 +5,7 @@ import org.crawlify.common.entity.WebsiteInfo;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.service.TaskNodeService;
 import org.crawlify.common.service.WebsiteInfoService;
-import org.crawlify.common.service.impl.TaskNodeServiceImpl;
+import org.crawlify.node.cache.NodeCache;
 import org.crawlify.node.processor.LinkProcessor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,10 +34,21 @@ public class IndexController {
     public R runSpiderTask(TaskNode taskNode) {
         taskNodeService.save(taskNode);
         WebsiteInfo websiteInfo = websiteInfoService.getById(taskNode.getWebsiteId());
-        Spider.create(new LinkProcessor(websiteInfo, null))
+        Spider spider = Spider.create(new LinkProcessor(websiteInfo, null))
                 .addUrl(websiteInfo.getBaseUrl())
-                .thread(taskNode.getThreadNum())
-                .run();
+                .thread(taskNode.getThreadNum());
+        NodeCache.spiderTaskCache.put(taskNode.getNodeId(), spider);
+        spider.runAsync();
+        return R.ok();
+    }
+
+    // 停止任务
+    @GetMapping("/stop")
+    public R stopSpiderTask(String nodeId) {
+        Spider spider = NodeCache.spiderTaskCache.get(nodeId);
+        if (spider != null) {
+            spider.stop();
+        }
         return R.ok();
     }
 }
