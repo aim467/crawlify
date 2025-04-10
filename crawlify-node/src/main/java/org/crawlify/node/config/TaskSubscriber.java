@@ -28,9 +28,6 @@ public class TaskSubscriber implements MessageListener {
         SpiderTask task = JSON.parseObject(json, SpiderTask.class);
         log.info("task: {}", task);
         WebsiteInfo websiteInfo = websiteInfoService.getById(task.getWebsiteId());
-        Spider.create(new LinkProcessor(websiteInfo, task))
-                .addUrl(websiteInfo.getBaseUrl())
-                .thread(5)
-                .run();
+
     }
 }
