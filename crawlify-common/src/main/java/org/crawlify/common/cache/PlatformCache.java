@@ -1,4 +1,4 @@
-package org.crawlify.platform.cache;
+package org.crawlify.common.cache;
 
 import org.crawlify.common.entity.SpiderNode;
 

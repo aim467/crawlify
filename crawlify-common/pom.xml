@@ -71,6 +71,12 @@
             <artifactId>hutool-all</artifactId>
             <version>5.8.34</version>
         </dependency>
+
+        <dependency>
+            <groupId>us.codecraft</groupId>
+            <artifactId>webmagic-core</artifactId>
+            <version>1.0.3</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

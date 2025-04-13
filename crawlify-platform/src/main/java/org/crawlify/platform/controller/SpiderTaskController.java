@@ -44,4 +44,15 @@ public class SpiderTaskController {
                                  @RequestParam(defaultValue = "10") int size) {
         return spiderTaskService.page(new Page<>(page, size));
     }
+
+    // 停止爬虫
+    @GetMapping("/stop")
+    public R stopSpiderTask(String taskId) {
+        return spiderTaskService.stopSpiderTask(taskId);
+    }
+
+    @GetMapping("/async")
+    public R asyncTaskStatus(String taskId) {
+        return spiderTaskService.asyncTaskStatus(taskId);
+    }
 }

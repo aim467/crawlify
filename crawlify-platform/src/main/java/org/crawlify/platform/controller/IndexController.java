@@ -1,9 +1,9 @@
 package org.crawlify.platform.controller;
 
 import cn.hutool.http.HttpRequest;
+import org.crawlify.common.cache.PlatformCache;
 import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.entity.result.R;
-import org.crawlify.platform.cache.PlatformCache;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,12 +20,13 @@ public class IndexController {
 
     // 把 SpiderNode 保存到缓存中
     @PostMapping("/saveNode")
-    public String saveNode(@RequestBody SpiderNode spiderNode) {
+    public R saveNode(@RequestBody SpiderNode spiderNode) {
         spiderNode.setStatus(1);
         String uniqueIdentifier = spiderNode.getNodeIp() + ":" + spiderNode.getNodePort();
         String nodeId = UUID.nameUUIDFromBytes(uniqueIdentifier.getBytes()).toString();
+        spiderNode.setNodeId(nodeId);
         PlatformCache.spiderNodeCache.putIfAbsent(nodeId, spiderNode);
-        return "success";
+        return R.ok();
     }
 
 

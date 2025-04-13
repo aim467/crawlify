@@ -27,7 +27,5 @@ public class TaskSubscriber implements MessageListener {
         String json = new String(message.getBody(), StandardCharsets.UTF_8);
         SpiderTask task = JSON.parseObject(json, SpiderTask.class);
         log.info("task: {}", task);
-        WebsiteInfo websiteInfo = websiteInfoService.getById(task.getWebsiteId());
-
     }
 }

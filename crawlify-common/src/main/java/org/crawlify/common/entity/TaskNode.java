@@ -1,5 +1,7 @@
 package org.crawlify.common.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -13,6 +15,7 @@ public class TaskNode implements Serializable {
     /**
      * 节点id
      */
+    @TableId(type = IdType.ASSIGN_ID)
     private String nodeId;
 
     /**
