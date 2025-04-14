@@ -1,8 +1,7 @@
 package org.crawlify.common.config;
 
 
-import org.springframework.cache.annotation.CachingConfigurerSupport;
-import org.springframework.cache.annotation.EnableCaching;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -10,14 +9,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-@EnableCaching
-public class RedisConfig extends CachingConfigurerSupport {
+@Slf4j
+public class RedisConfig {
     @Bean
     @SuppressWarnings(value = {"unchecked", "rawtypes"})
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<Object, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
-
+        log.info("factory: {}", connectionFactory);
         FastJson2JsonRedisSerializer serializer = new FastJson2JsonRedisSerializer(Object.class);
 
         // 使用StringRedisSerializer来序列化和反序列化redis的key值
@@ -31,4 +30,6 @@ public class RedisConfig extends CachingConfigurerSupport {
         template.afterPropertiesSet();
         return template;
     }
+
+
 }

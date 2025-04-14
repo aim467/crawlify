@@ -1,6 +1,9 @@
 server:
   port: 9000
 
+crawlify:
+  master: http://localhost:4444/
+
 spring:
   application:
     name: crawlify-node

@@ -48,7 +48,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
             return R.fail("当前站点正在运行中，请勿重复提交");
         }
         String taskId = UUID.randomUUID().toString();
-        task.setTaskId(UUID.randomUUID().toString());
+        task.setTaskId(taskId);
         task.setStatus(2);
         task.setCreatedAt(LocalDateTime.now());
         task.setUpdatedAt(LocalDateTime.now());
@@ -56,6 +56,9 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         this.save(task);
         // 分发任务
         for (SpiderNode spiderNode : PlatformCache.spiderNodeCache.values()) {
+            if (spiderNode.getStatus() == 0) {
+                continue;
+            }
             TaskNode taskNode = new TaskNode();
             taskNode.setNodeId(UUID.randomUUID().toString());
             taskNode.setNodeUrl("http://" + spiderNode.getNodeIp() + ":" + spiderNode.getNodePort() + "/");
@@ -82,10 +85,11 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         wrapper.eq(TaskNode::getTaskId, taskId);
         List<TaskNode> list = taskNodeService.list(wrapper);
         for (TaskNode taskNode : list) {
-            HttpUtil.post(taskNode.getNodeUrl() + "stop", JSON.toJSONString(taskNode));
+            String url = taskNode.getNodeUrl() + "stop?nodeId=" + taskNode.getNodeId();
+            HttpUtil.get(url);
             taskNode.setStatus(4);
+            taskNodeService.updateById(taskNode);
         }
-        taskNodeService.updateBatchById(list);
         task.setStatus(4);
         updateById(task);
         return R.ok();

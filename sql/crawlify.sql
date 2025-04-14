@@ -1,7 +1,7 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : local
  Source Server Type    : MySQL
  Source Server Version : 80100
  Source Host           : localhost:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80100
  File Encoding         : 65001
 
- Date: 31/03/2025 17:50:21
+ Date: 14/04/2025 17:38:48
 */
 
 SET NAMES utf8mb4;
@@ -26,8 +26,24 @@ CREATE TABLE `spider_task`  (
   `website_id` int NULL DEFAULT NULL,
   `status` tinyint(1) NULL DEFAULT NULL,
   `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_at` datetime NULL DEFAULT NULL,
+  `updated_at` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`task_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for task_node
+-- ----------------------------
+DROP TABLE IF EXISTS `task_node`;
+CREATE TABLE `task_node`  (
+  `node_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `status` int NULL DEFAULT NULL,
+  `task_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `website_id` int NULL DEFAULT NULL,
+  `thread_num` int NULL DEFAULT NULL,
+  `node_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `created_at` datetime NULL DEFAULT NULL,
+  `updated_at` datetime NULL DEFAULT NULL,
+  PRIMARY KEY (`node_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -42,7 +58,7 @@ CREATE TABLE `website_info`  (
   `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for website_link
@@ -58,6 +74,6 @@ CREATE TABLE `website_link`  (
   `ext_link` tinyint NULL DEFAULT NULL COMMENT '外部链接(1=true, 0=false)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `website_link_pk`(`website_id` ASC, `url` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 17042 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 60823 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;
