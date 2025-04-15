@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.crawlify.common.mapper.SpiderTaskMapper">
+    <select id="listTask" resultType="org.crawlify.common.vo.SpiderTaskVo">
+        SELECT
+        st.task_id,
+        st.website_id,
+        wi.name AS websiteName,
+        st.created_at,
+        st.updated_at,
+        st.status
+        FROM
+        spider_task st
+        JOIN
+        website_info wi ON st.website_id = wi.id
+        <where>
+            <if test="query.websiteName != null and query.websiteName != ''">
+                AND wi.name LIKE CONCAT('%', #{query.websiteName}, '%')
+            </if>
+            <if test="query.status != null">
+                AND st.status = #{query.status}
+            </if>
+        </where>
+        order by st.created_at desc
+    </select>
+</mapper>

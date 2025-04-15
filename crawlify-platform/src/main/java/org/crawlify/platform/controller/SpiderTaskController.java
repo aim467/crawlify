@@ -1,9 +1,12 @@
 package org.crawlify.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.crawlify.common.dto.query.SpiderTaskQuery;
+import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.entity.SpiderTask;
 import org.crawlify.common.service.SpiderTaskService;
+import org.crawlify.common.vo.SpiderTaskVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,9 +43,8 @@ public class SpiderTaskController {
     }
 
     @GetMapping("/list")
-    public Page<SpiderTask> list(@RequestParam(defaultValue = "1") int page,
-                                 @RequestParam(defaultValue = "10") int size) {
-        return spiderTaskService.page(new Page<>(page, size));
+    public PageResult<SpiderTaskVo> list(SpiderTaskQuery query) {
+        return spiderTaskService.listTask(query);
     }
 
     // 停止爬虫

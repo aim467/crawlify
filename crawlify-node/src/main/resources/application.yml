@@ -31,3 +31,5 @@ spring:
         max-idle: 8
         min-idle: 0
         max-wait: -1
+  main:
+    allow-circular-references: true

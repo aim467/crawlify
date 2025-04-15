@@ -3,7 +3,7 @@ package org.crawlify.platform.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.crawlify.common.entity.WebsiteInfo;
-import org.crawlify.common.entity.query.WebsiteInfoQuery;
+import org.crawlify.common.dto.query.WebsiteInfoQuery;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.service.WebsiteInfoService;
 import org.springframework.beans.factory.annotation.Autowired;

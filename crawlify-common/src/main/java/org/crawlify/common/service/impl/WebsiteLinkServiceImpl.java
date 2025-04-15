@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.WebsiteLink;
-import org.crawlify.common.entity.query.WebsiteLinkQuery;
+import org.crawlify.common.dto.query.WebsiteLinkQuery;
 import org.crawlify.common.mapper.WebsiteLinkMapper;
 import org.crawlify.common.service.WebsiteLinkService;
 import org.springframework.stereotype.Service;

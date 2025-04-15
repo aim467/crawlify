@@ -3,15 +3,20 @@ package org.crawlify.common.service.impl;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.crawlify.common.cache.PlatformCache;
+import org.crawlify.common.dto.query.SpiderTaskQuery;
 import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.entity.SpiderTask;
 import org.crawlify.common.entity.TaskNode;
+import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.mapper.SpiderTaskMapper;
 import org.crawlify.common.service.SpiderTaskService;
 import org.crawlify.common.service.TaskNodeService;
+import org.crawlify.common.vo.SpiderTaskVo;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,8 +48,8 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         // 根据 websiteId 查询任务
         LambdaQueryWrapper<SpiderTask> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SpiderTask::getWebsiteId, task.getWebsiteId());
-        wrapper.eq(SpiderTask::getStatus, Arrays.asList(2, 3));
-        if (this.count(wrapper) > 0) {
+        wrapper.eq(SpiderTask::getStatus, Arrays.asList(1, 2));
+        if (count(wrapper) > 0) {
             return R.fail("当前站点正在运行中，请勿重复提交");
         }
         String taskId = UUID.randomUUID().toString();
@@ -80,6 +85,10 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         if (task == null) {
             return R.fail("找不到任务");
         }
+
+        if (task.getStatus() == 3 || task.getStatus() == 4 || task.getStatus() == 5) {
+            return R.fail("任务已完成无需停止");
+        }
         // 找到 taskNode
         LambdaQueryWrapper<TaskNode> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TaskNode::getTaskId, taskId);
@@ -88,9 +97,11 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
             String url = taskNode.getNodeUrl() + "stop?nodeId=" + taskNode.getNodeId();
             HttpUtil.get(url);
             taskNode.setStatus(4);
+            task.setUpdatedAt(LocalDateTime.now());
             taskNodeService.updateById(taskNode);
         }
         task.setStatus(4);
+        task.setUpdatedAt(LocalDateTime.now());
         updateById(task);
         return R.ok();
     }
@@ -130,5 +141,18 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
             updateById(task);
         }
         return R.ok();
+    }
+
+    @Override
+    public PageResult<SpiderTaskVo> listTask(SpiderTaskQuery query) {
+        Page<SpiderTask> page = new Page<>(query.getPage(), query.getSize());
+
+        IPage<SpiderTaskVo> taskIPage = this.baseMapper.listTask(page, query);
+        PageResult<SpiderTaskVo> pageResult = new PageResult<>();
+        pageResult.setCurrent(taskIPage.getCurrent());
+        pageResult.setPages(taskIPage.getPages());
+        pageResult.setSize(taskIPage.getSize());
+        pageResult.setRecords(taskIPage.getRecords());
+        return pageResult;
     }
 }

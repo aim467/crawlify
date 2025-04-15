@@ -2,7 +2,7 @@ package org.crawlify.platform.controller;
 
 import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.WebsiteLink;
-import org.crawlify.common.entity.query.WebsiteLinkQuery;
+import org.crawlify.common.dto.query.WebsiteLinkQuery;
 import org.crawlify.common.service.WebsiteLinkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

@@ -1,4 +1,4 @@
-package org.crawlify.common.entity.query;
+package org.crawlify.common.dto.query;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
