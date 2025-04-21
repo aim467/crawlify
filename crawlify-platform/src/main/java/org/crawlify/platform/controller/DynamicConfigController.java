@@ -6,12 +6,15 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.crawlify.common.dto.query.DynamicConfigQuery;
+import org.crawlify.common.dynamic.DynamicCrawler;
 import org.crawlify.common.entity.DynamicConfig;
 import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.service.DynamicConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/dynamic-config")
@@ -41,9 +44,9 @@ public class DynamicConfigController {
         return pageResult;
     }
 
-    @GetMapping("/{id}")
-    public DynamicConfig getDynamicConfigById(@PathVariable Long id) {
-        return dynamicConfigService.getById(id);
+    @GetMapping("/{configId}")
+    public DynamicConfig getDynamicConfigById(@PathVariable String configId) {
+        return dynamicConfigService.getById(configId);
     }
 
     @PostMapping
@@ -51,13 +54,21 @@ public class DynamicConfigController {
         return dynamicConfigService.save(dynamicConfig);
     }
 
-    @PutMapping("/{id}")
-    public boolean updateDynamicConfig(@PathVariable Long id, @RequestBody DynamicConfig dynamicConfig) {
+    @PutMapping("")
+    public boolean updateDynamicConfig(@RequestBody DynamicConfig dynamicConfig) {
         return dynamicConfigService.updateById(dynamicConfig);
     }
 
     @DeleteMapping("/{id}")
-    public boolean deleteDynamicConfig(@PathVariable Long id) {
-        return dynamicConfigService.removeById(id);
+    public boolean deleteDynamicConfig(@PathVariable String configId) {
+        return dynamicConfigService.removeById(configId);
+    }
+
+    @GetMapping("/test")
+    public R<List<String>> dynamicConfigTest(String configId) {
+        DynamicConfig byId = dynamicConfigService.getById(configId);
+        DynamicCrawler dynamicCrawler = new DynamicCrawler(byId);
+        List<String> list = dynamicCrawler.crawl();
+        return R.ok(list);
     }
 }

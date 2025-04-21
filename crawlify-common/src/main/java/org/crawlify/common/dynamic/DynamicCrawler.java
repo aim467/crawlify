@@ -1,10 +1,15 @@
 package org.crawlify.common.dynamic;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson2.JSON;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import okhttp3.*; // OkHttp 核心类
+import org.crawlify.common.entity.DynamicConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,8 +27,7 @@ public class DynamicCrawler {
     private static final OkHttpClient client;
 
     static {
-        client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS) // 连接超时
+        client = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS) // 连接超时
                 .readTimeout(60, TimeUnit.SECONDS) // 读取超时
                 .writeTimeout(60, TimeUnit.SECONDS) // 写入超时
                 .followRedirects(true) // 允许重定向
@@ -31,9 +35,9 @@ public class DynamicCrawler {
                 .build();
     }
 
-    private final CrawlConfig config;
+    private final DynamicConfig config;
 
-    public DynamicCrawler(CrawlConfig config) {
+    public DynamicCrawler(DynamicConfig config) {
         Objects.requireNonNull(config, "CrawlConfig cannot be null");
         Objects.requireNonNull(config.getColumnUrl(), "columnUrl cannot be null");
         Objects.requireNonNull(config.getRequestType(), "requestType cannot be null");
@@ -82,12 +86,10 @@ public class DynamicCrawler {
                         headers.put(key, value);
                         log.trace("Parsed header for configId [{}]: {} -> {}", config.getConfigId(), key, value);
                     } else {
-                        log.warn("Skipping header line with empty key for configId [{}]: '{}'", config.getConfigId(),
-                                trimmedLine);
+                        log.warn("Skipping header line with empty key for configId [{}]: '{}'", config.getConfigId(), trimmedLine);
                     }
                 } else {
-                    log.warn("Skipping malformed header line for configId [{}]: '{}'", config.getConfigId(),
-                            trimmedLine);
+                    log.warn("Skipping malformed header line for configId [{}]: '{}'", config.getConfigId(), trimmedLine);
                 }
             }
 
@@ -95,14 +97,12 @@ public class DynamicCrawler {
                 config.setParsedHeaders(headers);
                 log.debug("Successfully parsed {} headers for configId [{}]", headers.size(), config.getConfigId());
             } else {
-                log.debug("Request head string provided but no valid headers parsed for configId [{}].",
-                        config.getConfigId());
+                log.debug("Request head string provided but no valid headers parsed for configId [{}].", config.getConfigId());
             }
 
         } catch (Exception e) {
             // 捕获潜在的字符串处理异常
-            log.error("Error parsing multi-line request head string for configId [{}]: {}", config.getConfigId(),
-                    rawHeaders, e);
+            log.error("Error parsing multi-line request head string for configId [{}]: {}", config.getConfigId(), rawHeaders, e);
             // 出错时，保持 parsedHeaders 为空 Map
             config.setParsedHeaders(Collections.emptyMap());
         }
@@ -123,8 +123,7 @@ public class DynamicCrawler {
 
             Request request = buildRequestForPage(currentPage);
             if (request == null) {
-                log.error("Failed to build request for page {} and configId [{}]. Skipping.", currentPage,
-                        config.getConfigId());
+                log.error("Failed to build request for page {} and configId [{}]. Skipping.", currentPage, config.getConfigId());
                 continue; // 或者可以选择中断整个爬取
             }
 
@@ -133,30 +132,35 @@ public class DynamicCrawler {
                     ResponseBody body = response.body();
                     if (body != null) {
                         String responseBody = body.string(); // 注意：body().string() 只能调用一次
-                        results.add(responseBody);
-                        log.debug("Successfully fetched page {} for configId [{}]. Response size: {} bytes",
-                                currentPage, config.getConfigId(), responseBody.length());
-                        // 打印 responseBody
-                        log.debug("Response body for page {}: {}", currentPage, responseBody);
-                        // 在此可以添加对 responseBody 的初步检查，例如判断是否为空列表，提前终止分页
-                        if (isEmptyResponse(responseBody)) {
-                            log.info("Detected empty response on page {} for configId [{}]. Stopping pagination.",
-                                    currentPage, config.getConfigId());
-                            break; // 如果服务器返回空数据，可以提前结束
+                        log.debug("Successfully fetched page {} for configId [{}]. Response size: {} bytes", currentPage, config.getConfigId(), responseBody.length());
+
+                        List<Object> jsonList = JsonPath.read(responseBody, config.getResultListRule());
+                        // 如果 jsonList 为空或者 size 为 0 直接跳过
+                        if (CollectionUtils.isEmpty(jsonList)) {
+                            log.warn("No results found on page {} for configId [{}]. Skipping.", currentPage, config.getConfigId());
+                            continue;
                         }
+                        for (Object json : jsonList) {
+                            String detailUrl = JsonPath.read(JSON.toJSONString(json), config.getDetailUrlRule());
+                            results.add(detailUrl);
+                        }
+
+//                        // 在此可以添加对 responseBody 的初步检查，例如判断是否为空列表，提前终止分页
+//                        if (isEmptyResponse(responseBody)) {
+//                            log.info("Detected empty response on page {} for configId [{}]. Stopping pagination.",
+//                                    currentPage, config.getConfigId());
+//                            break; // 如果服务器返回空数据，可以提前结束
+//                        }
                     } else {
-                        log.warn("Response body is null for page {} and configId [{}]", currentPage,
-                                config.getConfigId());
+                        log.warn("Response body is null for page {} and configId [{}]", currentPage, config.getConfigId());
                     }
                 } else {
-                    log.error("HTTP error for page {} and configId [{}]: Code={}, Message={}, URL={}",
-                            currentPage, config.getConfigId(), response.code(), response.message(), request.url());
+                    log.error("HTTP error for page {} and configId [{}]: Code={}, Message={}, URL={}", currentPage, config.getConfigId(), response.code(), response.message(), request.url());
                     // 可以根据需要添加重试逻辑或中断爬取
                     // break; // 例如：如果某一页失败，则停止后续页面的抓取
                 }
             } catch (IOException e) {
-                log.error("IOException during request for page {} and configId [{}]: URL={}", currentPage,
-                        config.getConfigId(), request.url(), e);
+                log.error("IOException during request for page {} and configId [{}]: URL={}", currentPage, config.getConfigId(), request.url(), e);
                 // 可以根据需要添加重试逻辑或中断爬取
                 // break; // 例如：网络错误时停止
             }
@@ -201,8 +205,7 @@ public class DynamicCrawler {
             String bodyContent = "";
             if (config.getRequestBody() != null) {
                 // 替换请求体中的占位符
-                bodyContent = config.getRequestBody().replace(CrawlConfig.PAGE_NUM_PLACEHOLDER,
-                        String.valueOf(pageNum));
+                bodyContent = config.getRequestBody().replace(CrawlConfig.PAGE_NUM_PLACEHOLDER, String.valueOf(pageNum));
             }
             // 猜测 Content-Type，或者让配置提供 Content-Type
             MediaType mediaType = determineMediaType(config.getParsedHeaders());
@@ -230,8 +233,7 @@ public class DynamicCrawler {
         if (pageNum == config.getPageStart() || config.getNextPage() == null || config.getNextPage().trim().isEmpty()) {
             // 对于 POST，即使不是第一页，URL 通常也是固定的，变的是 Body。
             // 但如果 nextPage 模板存在且是 POST，优先使用 nextPage 模板替换 URL 中的页码 (虽然不常见)
-            if (config.getRequestType().equals("POST") && config.getNextPage() != null
-                    && !config.getNextPage().trim().isEmpty()) {
+            if (config.getRequestType().equals("POST") && config.getNextPage() != null && !config.getNextPage().trim().isEmpty()) {
                 return config.getNextPage().replace(CrawlConfig.PAGE_NUM_PLACEHOLDER, String.valueOf(pageNum));
             }
             // 默认情况：使用 columnUrl
@@ -251,8 +253,7 @@ public class DynamicCrawler {
      * 根据 Headers 推断或提供默认的 MediaType (用于 POST)
      */
     private MediaType determineMediaType(Map<String, String> headers) {
-        String contentType = headers != null ? headers.getOrDefault("Content-Type", "application/json; charset=utf-8")
-                : "application/json; charset=utf-8";
+        String contentType = headers != null ? headers.getOrDefault("Content-Type", "application/json; charset=utf-8") : "application/json; charset=utf-8";
         // 尝试从 Content-Type header 解析 MediaType
         MediaType mediaType = MediaType.parse(contentType);
         // 如果解析失败，提供一个安全的默认值
@@ -270,27 +271,11 @@ public class DynamicCrawler {
      * @return 如果是空数据，返回 true
      */
     private boolean isEmptyResponse(String responseBody) {
-        if (responseBody == null)
-            return true;
+        if (responseBody == null) return true;
         String trimmedBody = responseBody.trim();
         // 简单判断：是否为空 JSON 数组 "[]" 或空字符串 ""
         // TODO: 需要根据实际 API 返回的空数据格式进行更精确的判断
         // 例如，可能返回 {"data": []} 或 XML 的空列表等
         return trimmedBody.isEmpty();
-    }
-
-    public static void main(String[] args) {
-        CrawlConfig build = CrawlConfig.builder()
-                .configId("1111")
-                .columnUrl("http://localhost:8080/user/postUserList?page=1&size=10") // 第一页 URL
-                .requestType("POST")
-                .requestBody("{\"page\":1,\"size\":10}")
-                .pageStart(1) // 页码从 1 开始
-                .pageLen(100) // 抓取到第 10 页
-                .nextPage("http://localhost:8080/user/postUserList?page=<pageNum>&size=10") // 后续页 URL 模板
-                .build();
-        DynamicCrawler crawler = new DynamicCrawler(build);
-        crawler.crawl();
-
     }
 }
