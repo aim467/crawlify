@@ -7,11 +7,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import okhttp3.*; // OkHttp 核心类
 import org.crawlify.common.entity.DynamicConfig;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Node;
+import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DynamicCrawler {
 
@@ -134,25 +142,17 @@ public class DynamicCrawler {
                         String responseBody = body.string(); // 注意：body().string() 只能调用一次
                         log.debug("Successfully fetched page {} for configId [{}]. Response size: {} bytes", currentPage, config.getConfigId(), responseBody.length());
 
-                        List<Object> jsonList = JsonPath.read(responseBody, config.getResultListRule());
-                        // 如果 jsonList 为空或者 size 为 0 直接跳过
-                        if (CollectionUtils.isEmpty(jsonList)) {
-                            log.warn("No results found on page {} for configId [{}]. Skipping.", currentPage, config.getConfigId());
-                            continue;
+                        // 根据 resultType 来决定如何处理响应
+                        if (config.getResultType().equalsIgnoreCase("JSON")) {
+                            results.addAll(parseLinksFromResponseByJson(responseBody));
+                        } else if (config.getResultType().equalsIgnoreCase("XML")) {
+                            results.addAll(parseLinksFromResponseByXml(responseBody));
+                        } else {
+                            log.warn("Unsupported result type: {} for configId [{}]", config.getResultType(), config.getConfigId());
                         }
-                        for (Object json : jsonList) {
-                            String detailUrl = JsonPath.read(JSON.toJSONString(json), config.getDetailUrlRule());
-                            results.add(detailUrl);
-                        }
-
-//                        // 在此可以添加对 responseBody 的初步检查，例如判断是否为空列表，提前终止分页
-//                        if (isEmptyResponse(responseBody)) {
-//                            log.info("Detected empty response on page {} for configId [{}]. Stopping pagination.",
-//                                    currentPage, config.getConfigId());
-//                            break; // 如果服务器返回空数据，可以提前结束
-//                        }
                     } else {
-                        log.warn("Response body is null for page {} and configId [{}]", currentPage, config.getConfigId());
+                        log.warn("Response body is null for page {} and configId [{}]", currentPage,
+                                config.getConfigId());
                     }
                 } else {
                     log.error("HTTP error for page {} and configId [{}]: Code={}, Message={}, URL={}", currentPage, config.getConfigId(), response.code(), response.message(), request.url());
@@ -277,5 +277,89 @@ public class DynamicCrawler {
         // TODO: 需要根据实际 API 返回的空数据格式进行更精确的判断
         // 例如，可能返回 {"data": []} 或 XML 的空列表等
         return trimmedBody.isEmpty();
+    }
+
+    // 判断表达式是否是带链接格式（包含 <...>）
+    private static boolean isWrappedUrl(String expr) {
+        return expr.matches(".*<.+>.*");
+    }
+
+    // 提取 <> 内的 xpath 表达式
+    private static String extractInnerXpath(String expr) {
+        Matcher matcher = Pattern.compile("<(.*?)>").matcher(expr);
+        return matcher.find() ? matcher.group(1) : null;
+    }
+
+    // 从单个节点提取详情字段
+    private static String extractDetailFromNode(Node node, String expr) throws DocumentException {
+        if (!isWrappedUrl(expr)) {
+            // 纯 xpath 表达式
+            Node selected = node.selectSingleNode(expr);
+            return selected != null ? selected.getText() : null;
+        } else {
+            // 包含 url 模板的表达式
+            String xpath = extractInnerXpath(expr);
+            if (xpath == null) return null;
+
+            Node selected = node.selectSingleNode(xpath);
+            String value = selected != null ? selected.getText() : "";
+
+            // 替换原始表达式中的 <...> 为值
+            return expr.replaceAll("<" + Pattern.quote(xpath) + ">", value);
+        }
+    }
+
+
+    private List<String> parseLinksFromResponseByXml(String responseBody) {
+        SAXReader reader = new SAXReader();
+        List<String> links = new ArrayList<>();
+        String detailUrlRule = config.getDetailUrlRule();
+        try {
+            Document document = reader.read(new StringReader(responseBody));
+            List<Node> nodes = document.selectNodes(config.getResultListRule());
+            // 判断nodes是否为空
+            if (CollectionUtils.isEmpty(nodes)) {
+                return Collections.emptyList();
+            }
+
+            for (Node node : nodes) {
+                String url = extractDetailFromNode(node, detailUrlRule);
+                if (StringUtils.hasText(url)) {
+                    links.add(url);
+                }
+            }
+        } catch (DocumentException e) {
+            log.error("Failed to parse XML response", e);
+            return Collections.emptyList();
+        }
+        return links;
+    }
+
+    private List<String> parseLinksFromResponseByJson(String responseBody) {
+        List<String> results = new ArrayList<>();
+        List<Object> jsonList = JsonPath.read(responseBody, config.getResultListRule());
+        // 如果 jsonList 为空或者 size 为 0 直接跳过
+        if (CollectionUtils.isEmpty(jsonList)) {
+            return Collections.emptyList();
+        }
+        for (Object json : jsonList) {
+            String detailUrlRule = config.getDetailUrlRule();
+            if (detailUrlRule.matches("^https?://.*<.+>.*$")) {
+                // 是 URL 模式，提取 <>
+                Matcher matcher = Pattern.compile("<(.*?)>").matcher(detailUrlRule);
+                while (matcher.find()) {
+                    String jsonPath = matcher.group(1);
+                    String jsonValue = JsonPath.read(JSON.toJSONString(json), jsonPath).toString();
+                    detailUrlRule = detailUrlRule.replace("<" + jsonPath + ">", jsonValue);
+                    results.add(detailUrlRule);
+                    break;
+                }
+                continue;
+            }
+            String detailUrl = JsonPath.read(JSON.toJSONString(json),
+                    config.getDetailUrlRule()).toString();
+            results.add(detailUrl);
+        }
+        return results;
     }
 }

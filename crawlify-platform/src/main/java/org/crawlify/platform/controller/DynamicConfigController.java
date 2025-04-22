@@ -59,7 +59,7 @@ public class DynamicConfigController {
         return dynamicConfigService.updateById(dynamicConfig);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{configId}")
     public boolean deleteDynamicConfig(@PathVariable String configId) {
         return dynamicConfigService.removeById(configId);
     }
@@ -67,6 +67,8 @@ public class DynamicConfigController {
     @GetMapping("/test")
     public R<List<String>> dynamicConfigTest(String configId) {
         DynamicConfig byId = dynamicConfigService.getById(configId);
+        // 测试设置最大翻页为一页
+        byId.setPageLen(1);
         DynamicCrawler dynamicCrawler = new DynamicCrawler(byId);
         List<String> list = dynamicCrawler.crawl();
         return R.ok(list);
