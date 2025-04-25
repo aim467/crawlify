@@ -1,16 +1,20 @@
 package org.crawlify.node.config;
 
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import redis.clients.jedis.Jedis;
 
 
 import org.springframework.data.redis.core.RedisTemplate;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * 基于 Redis 的简单布隆过滤器实现
  */
 public class RedisBloomFilter {
 
-    private RedisTemplate<String, Object> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
     // 在 Redis 中保存布隆过滤器的 key
     private String redisKey;
     // 位数组大小（比如 2^24）
@@ -18,8 +22,8 @@ public class RedisBloomFilter {
     // 哈希函数种子数组
     private int[] seeds;
 
-    public RedisBloomFilter(RedisTemplate<String, Object> redisTemplate, String redisKey, int bitSize, int[] seeds) {
-        this.redisTemplate = redisTemplate;
+    public RedisBloomFilter(StringRedisTemplate stringRedisTemplate, String redisKey, int bitSize, int[] seeds) {
+        this.stringRedisTemplate = stringRedisTemplate;
         this.redisKey = redisKey;
         this.bitSize = bitSize;
         this.seeds = seeds;
@@ -46,7 +50,7 @@ public class RedisBloomFilter {
     public boolean contains(String value) {
         for (int seed : seeds) {
             int offset = hash(value, seed);
-            Boolean bit = redisTemplate.opsForValue().getBit(redisKey, offset);
+            Boolean bit = stringRedisTemplate.opsForValue().getBit(redisKey, offset);
             if (bit == null || !bit) {
                 return false;
             }
@@ -60,10 +64,15 @@ public class RedisBloomFilter {
      * @param value 待添加的字符串（例如 URL）
      */
     public void add(String value) {
-        for (int seed : seeds) {
-            int offset = hash(value, seed);
-            redisTemplate.opsForValue().setBit(redisKey, offset, true);
-        }
+        byte[] keyBytes = redisKey.getBytes(StandardCharsets.UTF_8);
+        stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            for (int seed : seeds) {
+                long offset = hash(value, seed);
+                // 直接在 RedisConnection 上 setBit
+                connection.setBit(keyBytes, offset, true);
+            }
+            return null;
+        });
     }
 }
 

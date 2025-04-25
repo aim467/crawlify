@@ -48,7 +48,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         // 根据 websiteId 查询任务
         LambdaQueryWrapper<SpiderTask> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SpiderTask::getWebsiteId, task.getWebsiteId());
-        wrapper.eq(SpiderTask::getStatus, Arrays.asList(1, 2));
+        wrapper.in(SpiderTask::getStatus, Arrays.asList(1, 2));
         if (count(wrapper) > 0) {
             return R.fail("当前站点正在运行中，请勿重复提交");
         }
@@ -94,7 +94,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         wrapper.eq(TaskNode::getTaskId, taskId);
         List<TaskNode> list = taskNodeService.list(wrapper);
         for (TaskNode taskNode : list) {
-            String url = taskNode.getNodeUrl() + "stop?nodeId=" + taskNode.getNodeId();
+            String url = taskNode.getNodeUrl() + "stop?taskId=" + taskNode.getTaskId();
             HttpUtil.get(url);
             taskNode.setStatus(4);
             task.setUpdatedAt(LocalDateTime.now());
@@ -116,25 +116,31 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
 
         boolean hasRunning = nodes.stream().anyMatch(n -> n.getStatus() == 2);
         boolean hasInit = nodes.stream().anyMatch(n -> n.getStatus() == 1);
-        boolean allFinished = nodes.stream().allMatch(n -> n.getStatus() == 4);
-        boolean allStopped = nodes.stream().allMatch(n -> n.getStatus() == 3);
+        boolean allFinished = nodes.stream().allMatch(n -> n.getStatus() == 3);
+        boolean allStopped = nodes.stream().allMatch(n -> n.getStatus() == 4);
 
         int newStatus;
 
         if (allFinished) {
-            newStatus = 4; // 完成
+            newStatus = 3; // 完成
         } else if (hasRunning) {
             newStatus = 2; // 运行
         } else if (hasInit) {
             newStatus = 1; // 初始化
         } else if (allStopped) {
-            newStatus = 3; // 停止
+            newStatus = 4; // 停止
         } else {
             // 部分完成、部分停止等情况
             newStatus = 5;
         }
-
         SpiderTask task = getById(taskId);
+
+        // 如果为完成，那么需要删除 redis queue key 和 bloom key
+        if (newStatus == 3 || newStatus == 4 || newStatus == 5) {
+            redisTemplate.delete("queue_" + task.getTaskId());
+            redisTemplate.delete("bloom_" + task.getTaskId());
+        }
+
         if (task != null && !Objects.equals(task.getStatus(), newStatus)) {
             task.setStatus(newStatus);
             task.setUpdatedAt(LocalDateTime.now());
@@ -153,6 +159,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         pageResult.setPages(taskIPage.getPages());
         pageResult.setSize(taskIPage.getSize());
         pageResult.setRecords(taskIPage.getRecords());
+        pageResult.setTotal(taskIPage.getTotal());
         return pageResult;
     }
 }

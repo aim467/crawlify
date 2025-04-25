@@ -2,6 +2,7 @@ package org.crawlify.node.config;
 
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.scheduler.Scheduler;
@@ -24,9 +25,10 @@ public class RedisScheduler implements Scheduler {
      * @param seeds         哈希函数的种子数组，如 {7, 11, 13, 31, 37, 61}
      */
     public RedisScheduler(RedisTemplate<String, Object> redisTemplate,
+                          StringRedisTemplate stringRedisTemplate,
                           String bloomKey, String queueKey, int bitSize, int[] seeds) {
         this.redisTemplate = redisTemplate;
-        this.bloomFilter = new RedisBloomFilter(redisTemplate, bloomKey, bitSize, seeds);
+        this.bloomFilter = new RedisBloomFilter(stringRedisTemplate, bloomKey, bitSize, seeds);
         this.queueKey = queueKey;
     }
 

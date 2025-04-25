@@ -1,6 +1,7 @@
 package org.crawlify.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.dto.query.SpiderTaskQuery;
 import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.result.R;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Slf4j
 @RequestMapping("/spiderTask")
 public class SpiderTaskController {
 
@@ -55,6 +57,7 @@ public class SpiderTaskController {
 
     @GetMapping("/async")
     public R asyncTaskStatus(String taskId) {
+        log.info("asyncTaskStatus: {}", taskId);
         return spiderTaskService.asyncTaskStatus(taskId);
     }
 }

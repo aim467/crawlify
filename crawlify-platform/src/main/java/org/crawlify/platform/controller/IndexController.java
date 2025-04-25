@@ -17,7 +17,6 @@ import java.util.UUID;
 @RequestMapping("/")
 public class IndexController {
 
-
     // 把 SpiderNode 保存到缓存中
     @PostMapping("/saveNode")
     public R saveNode(@RequestBody SpiderNode spiderNode) {
@@ -28,7 +27,6 @@ public class IndexController {
         PlatformCache.spiderNodeCache.putIfAbsent(nodeId, spiderNode);
         return R.ok();
     }
-
 
     @PostMapping("/refreshNode")
     public R<List<SpiderNode>> refreshNode() {
@@ -46,4 +44,5 @@ public class IndexController {
         }
         return R.ok(spiderNodes);
     }
+
 }
