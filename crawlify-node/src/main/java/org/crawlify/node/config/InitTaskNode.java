@@ -23,6 +23,8 @@ public class InitTaskNode implements CommandLineRunner {
     @Value("${server.port}")
     private int port;
 
+    @Value("${temp-authorization-key}")
+    private String tempAuthorizationKey;
 
     @Override
     public void run(String... args) throws Exception {
@@ -37,7 +39,9 @@ public class InitTaskNode implements CommandLineRunner {
 
         try {
             // 发送 master + /saveNode post
-            HttpUtil.createPost(master + "saveNode").contentType("application/json").body(JSON.toJSONString(spiderNode))
+            HttpUtil.createPost(master + "saveNode").contentType("application/json")
+                    .body(JSON.toJSONString(spiderNode))
+                    .header("X-Crawlify-Token", tempAuthorizationKey)
                     .execute().body();
             log.info("send node info to master: {}", spiderNode);
         } catch (Exception e) {

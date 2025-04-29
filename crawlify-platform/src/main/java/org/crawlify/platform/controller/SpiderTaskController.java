@@ -45,8 +45,8 @@ public class SpiderTaskController {
     }
 
     @GetMapping("/list")
-    public PageResult<SpiderTaskVo> list(SpiderTaskQuery query) {
-        return spiderTaskService.listTask(query);
+    public R<PageResult<SpiderTaskVo>> list(SpiderTaskQuery query) {
+        return R.ok(spiderTaskService.listTask(query));
     }
 
     // 停止爬虫

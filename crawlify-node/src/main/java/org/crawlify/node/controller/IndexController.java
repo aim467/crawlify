@@ -1,5 +1,7 @@
 package org.crawlify.node.controller;
 
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.entity.TaskNode;
@@ -24,6 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 import us.codecraft.webmagic.Spider;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/")
@@ -46,6 +50,9 @@ public class IndexController {
 
     @Resource
     private TaskNodeService taskNodeService;
+
+    @Value("${temp-authorization-key}")
+    private String tempAuthorizationKey;
 
     @GetMapping("/ping")
     public R ping() {
@@ -70,8 +77,9 @@ public class IndexController {
             taskNodeService.updateById(taskNode);
             // 发送回调
             log.info("执行回调");
-            String response = HttpUtil.get(master + "spiderTask/async?taskId=" + taskNode.getTaskId());
-            log.info("回调结果：" + response);
+            HttpResponse response = HttpRequest.get(master + "spiderTask/callback?taskId=" + taskNode.getTaskId())
+                    .header("X-Crawlify-Token", tempAuthorizationKey).execute();
+            log.info("回调结果：{}", response);
         });
         return R.ok();
     }

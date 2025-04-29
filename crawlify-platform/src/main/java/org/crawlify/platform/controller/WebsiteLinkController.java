@@ -3,6 +3,7 @@ package org.crawlify.platform.controller;
 import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.WebsiteLink;
 import org.crawlify.common.dto.query.WebsiteLinkQuery;
+import org.crawlify.common.entity.result.R;
 import org.crawlify.common.service.WebsiteLinkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -35,8 +36,9 @@ public class WebsiteLinkController {
     }
 
     @GetMapping("/list")
-    public PageResult<WebsiteLink> list(WebsiteLinkQuery query) {
-        return websiteLinkService.queryLink(query);
+    public R<PageResult<WebsiteLink>> list(WebsiteLinkQuery query) {
+        PageResult<WebsiteLink> websiteLinkPageResult = websiteLinkService.queryLink(query);
+        return R.ok(websiteLinkPageResult);
 
     }
 }

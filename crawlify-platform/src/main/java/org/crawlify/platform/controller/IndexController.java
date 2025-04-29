@@ -1,21 +1,32 @@
 package org.crawlify.platform.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.http.HttpRequest;
 import org.crawlify.common.cache.PlatformCache;
 import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.entity.result.R;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/")
 public class IndexController {
+
+    @Value("${crawlify.username}")
+    private String username;
+
+    @Value("${crawlify.password}")
+    private String password;
+
 
     // 把 SpiderNode 保存到缓存中
     @PostMapping("/saveNode")
@@ -45,4 +56,21 @@ public class IndexController {
         return R.ok(spiderNodes);
     }
 
+    // 使用 sa-token 写登录
+    @PostMapping("/login")
+    public R login() {
+        if (username.equals("admin") && password.equals("123456")) {
+            StpUtil.login("admin");
+            Map<String, Object> result = new HashMap<>();
+            result.put("token", StpUtil.getTokenValue());
+            return R.ok(result);
+        }
+        return R.fail("账号密码有误");
+    }
+
+    @PostMapping("/logout")
+    public R logout() {
+        StpUtil.logout();
+        return R.ok();
+    }
 }

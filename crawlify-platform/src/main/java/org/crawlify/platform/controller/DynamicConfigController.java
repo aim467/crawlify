@@ -3,7 +3,6 @@ package org.crawlify.platform.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.crawlify.common.dto.query.DynamicConfigQuery;
 import org.crawlify.common.dynamic.DynamicCrawler;
@@ -24,7 +23,7 @@ public class DynamicConfigController {
     private DynamicConfigService dynamicConfigService;
 
     @GetMapping("/list")
-    public PageResult<DynamicConfig> getAllDynamicConfigs(DynamicConfigQuery dynamicConfigQuery) {
+    public R<PageResult<DynamicConfig>> getAllDynamicConfigs(DynamicConfigQuery dynamicConfigQuery) {
         LambdaQueryWrapper<DynamicConfig> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtils.isNotEmpty(dynamicConfigQuery.getConfigName()), DynamicConfig::getConfigName,
                 dynamicConfigQuery.getConfigName());
@@ -41,7 +40,8 @@ public class DynamicConfigController {
         pageResult.setPages(dynamicConfigPage.getPages());
         pageResult.setSize(dynamicConfigPage.getSize());
         pageResult.setRecords(dynamicConfigPage.getRecords());
-        return pageResult;
+        pageResult.setTotal(dynamicConfigPage.getTotal());
+        return R.ok(pageResult);
     }
 
     @GetMapping("/{configId}")

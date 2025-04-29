@@ -38,11 +38,12 @@ public class WebsiteInfoController {
     }
 
     @GetMapping("/list")
-    public Page<WebsiteInfo> list(WebsiteInfoQuery query) {
+    public R<Page<WebsiteInfo>> list(WebsiteInfoQuery query) {
         LambdaQueryWrapper<WebsiteInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.like(StringUtils.hasText(query.getName()), WebsiteInfo::getName, query.getName());
         wrapper.like(StringUtils.hasText(query.getBaseUrl()), WebsiteInfo::getBaseUrl, query.getBaseUrl());
         wrapper.like(StringUtils.hasText(query.getDomain()), WebsiteInfo::getDomain, query.getDomain());
-        return websiteInfoService.page(new Page<>(query.getPage(), query.getSize()), wrapper);
+        Page<WebsiteInfo> page = websiteInfoService.page(new Page<>(query.getPage(), query.getSize()), wrapper);
+        return R.ok(page);
     }
 }
