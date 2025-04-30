@@ -13,6 +13,7 @@ import org.crawlify.common.service.DynamicConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -45,23 +46,24 @@ public class DynamicConfigController {
     }
 
     @GetMapping("/{configId}")
-    public DynamicConfig getDynamicConfigById(@PathVariable String configId) {
-        return dynamicConfigService.getById(configId);
+    public R<DynamicConfig> getDynamicConfigById(@PathVariable String configId) {
+        return R.ok(dynamicConfigService.getById(configId));
     }
 
     @PostMapping
-    public boolean saveDynamicConfig(@RequestBody DynamicConfig dynamicConfig) {
-        return dynamicConfigService.save(dynamicConfig);
+    public R<Boolean> saveDynamicConfig(@RequestBody DynamicConfig dynamicConfig) {
+        return R.ok(dynamicConfigService.save(dynamicConfig));
     }
 
     @PutMapping("")
-    public boolean updateDynamicConfig(@RequestBody DynamicConfig dynamicConfig) {
-        return dynamicConfigService.updateById(dynamicConfig);
+    public R<Boolean> updateDynamicConfig(@RequestBody DynamicConfig dynamicConfig) {
+        dynamicConfig.setUpdatedAt(LocalDateTime.now());
+        return R.ok(dynamicConfigService.updateById(dynamicConfig));
     }
 
     @DeleteMapping("/{configId}")
-    public boolean deleteDynamicConfig(@PathVariable String configId) {
-        return dynamicConfigService.removeById(configId);
+    public R<Boolean> deleteDynamicConfig(@PathVariable String configId) {
+        return R.ok(dynamicConfigService.removeById(configId));
     }
 
     @GetMapping("/test")
