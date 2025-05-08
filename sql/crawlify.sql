@@ -74,15 +74,21 @@ CREATE TABLE `task_node`  (
 -- Table structure for website_info
 -- ----------------------------
 DROP TABLE IF EXISTS `website_info`;
-CREATE TABLE `website_info`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `base_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `domain` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+CREATE TABLE `website_info` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) DEFAULT NULL COMMENT '网站名称',
+    `base_url` varchar(255) DEFAULT NULL COMMENT '起始url',
+    `domain` varchar(255) DEFAULT NULL COMMENT '域名',
+    `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` datetime DEFAULT NULL COMMENT '更新时间',
+    `charset` varchar(10) DEFAULT NULL COMMENT '字符编码',
+    `headers` int DEFAULT NULL COMMENT '请求头',
+    `cookies` int DEFAULT NULL COMMENT '此网站的cookie',
+    `time_out` int DEFAULT NULL COMMENT '超时时间(毫秒)',
+    `retry_times` int DEFAULT NULL COMMENT '重试次数',
+    `cycle_retry_times` int DEFAULT NULL COMMENT '循环重试次数',
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Table structure for website_link

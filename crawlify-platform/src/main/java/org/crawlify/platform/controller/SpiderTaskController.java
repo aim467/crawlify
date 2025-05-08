@@ -1,6 +1,7 @@
 package org.crawlify.platform.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.crawlify.common.dto.insert.SubmitTask;
 import org.crawlify.common.dto.query.SpiderTaskQuery;
 import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.result.R;
@@ -19,8 +20,8 @@ public class SpiderTaskController {
     private SpiderTaskService spiderTaskService;
 
     @PostMapping("/run")
-    public R startTask(@RequestBody SpiderTask spiderTask) {
-        return spiderTaskService.submitTask(spiderTask);
+    public R startTask(@RequestBody SubmitTask submitTask) {
+        return spiderTaskService.submitTask(submitTask);
     }
 
     @DeleteMapping("/{taskId}")

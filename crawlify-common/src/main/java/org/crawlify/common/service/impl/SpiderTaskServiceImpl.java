@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.crawlify.common.cache.PlatformCache;
+import org.crawlify.common.dto.insert.SubmitTask;
 import org.crawlify.common.dto.query.SpiderTaskQuery;
 import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.entity.SpiderTask;
@@ -38,7 +39,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
     private TaskNodeService taskNodeService;
 
     @Override
-    public R submitTask(SpiderTask task) {
+    public R submitTask(SubmitTask submitTask) {
         /**
          * 1 初始化
          * 2 运行
@@ -47,11 +48,13 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
          */
         // 根据 websiteId 查询任务
         LambdaQueryWrapper<SpiderTask> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SpiderTask::getWebsiteId, task.getWebsiteId());
+        wrapper.eq(SpiderTask::getWebsiteId, submitTask.getWebsiteId());
         wrapper.in(SpiderTask::getStatus, Arrays.asList(1, 2));
         if (count(wrapper) > 0) {
             return R.fail("当前站点正在运行中，请勿重复提交");
         }
+
+        SpiderTask task = new SpiderTask();
         String taskId = UUID.randomUUID().toString();
         task.setTaskId(taskId);
         task.setStatus(2);
@@ -71,7 +74,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
             taskNode.setCreatedAt(LocalDateTime.now());
             taskNode.setUpdatedAt(LocalDateTime.now());
             taskNode.setTaskId(taskId);
-            taskNode.setThreadNum(3);
+            taskNode.setThreadNum(submitTask.getThreadNum());
             taskNode.setWebsiteId(task.getWebsiteId());
             taskNodeService.save(taskNode);
             HttpUtil.post(taskNode.getNodeUrl() + "run", JSON.toJSONString(taskNode));

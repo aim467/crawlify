@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 
 import javax.annotation.Resource;
@@ -65,10 +66,12 @@ public class IndexController {
             WebsiteInfo websiteInfo = websiteInfoService.getById(taskNode.getWebsiteId());
             int bitSize = 1 << 24; // 默认 16MB
             int[] seeds = new int[]{7, 11, 13, 31, 37, 61}; // 默认 6 个哈希函数
-            Spider spider = Spider.create(new LinkProcessor(websiteInfo, null)).
-                    setScheduler(new RedisScheduler(redisTemplate, stringRedisTemplate, "bloom_" + taskNode.getTaskId(),
-                            "queue_" + taskNode.getTaskId(), bitSize, seeds)).
-                    addUrl(websiteInfo.getBaseUrl()).thread(taskNode.getThreadNum());
+            Spider spider = Spider.create(new LinkProcessor(websiteInfo))
+                    .setScheduler(new RedisScheduler(redisTemplate, stringRedisTemplate,
+                            "bloom_" + taskNode.getTaskId(),
+                            "queue_" + taskNode.getTaskId(), bitSize, seeds))
+                    .addUrl(websiteInfo.getBaseUrl())
+                    .thread(taskNode.getThreadNum());
             NodeCache.spiderTaskCache.put(taskNode.getTaskId(), spider);
             spider.run();
             // 修改状态
@@ -77,7 +80,7 @@ public class IndexController {
             taskNodeService.updateById(taskNode);
             // 发送回调
             log.info("执行回调");
-            HttpResponse response = HttpRequest.get(master + "spiderTask/callback?taskId=" + taskNode.getTaskId())
+            HttpResponse response = HttpRequest.get(master + "spiderTask/async?taskId=" + taskNode.getTaskId())
                     .header("X-Crawlify-Token", tempAuthorizationKey).execute();
             log.info("回调结果：{}", response);
         });

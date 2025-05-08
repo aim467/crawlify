@@ -24,18 +24,34 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LinkProcessor implements PageProcessor {
     private final WebsiteInfo websiteInfo;
-    private final SpiderTask spiderTask;
+
+    private Site site;
+
     private final WebsiteLinkService websiteLinkService;
 
 
-    public LinkProcessor(WebsiteInfo websiteInfo, SpiderTask spiderTask) {
+    public LinkProcessor(WebsiteInfo websiteInfo) {
         this.websiteInfo = websiteInfo;
-        this.spiderTask = spiderTask;
+        Site newSite = Site.me();
+        site.setDomain(websiteInfo.getDomain());
+        site.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        if (websiteInfo.getCharset() != null) {
+            site.setCharset(websiteInfo.getCharset());
+        }
+        if (websiteInfo.getRetryTimes() != null) {
+            site.setRetryTimes(websiteInfo.getRetryTimes());
+        }
+        if (websiteInfo.getTimeOut() != null) {
+            site.setTimeOut(websiteInfo.getTimeOut());
+        }
+        if (websiteInfo.getCycleRetryTimes() != null) {
+            site.setCycleRetryTimes(websiteInfo.getCycleRetryTimes());
+        }
+
+        this.site = newSite;
         this.websiteLinkService = SpringContextUtil.getBean(WebsiteLinkService.class);
     }
 
-    // 爬虫配置（如重试次数、超时时间等）
-    private Site site = Site.me().setRetryTimes(3).setSleepTime(1000).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
 
     @Override
     public void process(Page page) {
