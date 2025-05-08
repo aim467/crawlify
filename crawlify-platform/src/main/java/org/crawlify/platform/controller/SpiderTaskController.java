@@ -1,6 +1,5 @@
 package org.crawlify.platform.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.dto.query.SpiderTaskQuery;
 import org.crawlify.common.entity.result.PageResult;
@@ -24,19 +23,14 @@ public class SpiderTaskController {
         return spiderTaskService.submitTask(spiderTask);
     }
 
-    @PostMapping
-    public boolean save(@RequestBody SpiderTask spiderTask) {
-        return spiderTaskService.save(spiderTask);
-    }
-
-    @PutMapping
-    public boolean update(@RequestBody SpiderTask spiderTask) {
-        return spiderTaskService.updateById(spiderTask);
-    }
-
-    @DeleteMapping("/{id}")
-    public boolean delete(@PathVariable Long id) {
-        return spiderTaskService.removeById(id);
+    @DeleteMapping("/{taskId}")
+    public R<Boolean> delete(@PathVariable String taskId) {
+        log.info("delete: {}", taskId);
+        SpiderTask byId = spiderTaskService.getById(taskId);
+        if (byId.getStatus() == 2) {
+            return R.fail("任务在结束之前不允许删除");
+        }
+        return spiderTaskService.removeById(taskId) ? R.ok() : R.fail();
     }
 
     @GetMapping("/{id}")
