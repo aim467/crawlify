@@ -8,6 +8,7 @@ import org.crawlify.common.service.WebsiteLinkService;
 import org.crawlify.node.util.LinkUtils;
 import org.crawlify.node.util.SpringContextUtil;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.processor.PageProcessor;
@@ -17,6 +18,7 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -32,23 +34,23 @@ public class LinkProcessor implements PageProcessor {
 
     public LinkProcessor(WebsiteInfo websiteInfo) {
         this.websiteInfo = websiteInfo;
-        Site newSite = Site.me();
+        // 初始化 site 变量
+        this.site = Site.me();
         site.setDomain(websiteInfo.getDomain());
         site.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-        if (websiteInfo.getCharset() != null) {
+        if (StringUtils.hasText(websiteInfo.getCharset())) {
             site.setCharset(websiteInfo.getCharset());
         }
-        if (websiteInfo.getRetryTimes() != null) {
+        if (Objects.nonNull(websiteInfo.getRetryTimes())) {
             site.setRetryTimes(websiteInfo.getRetryTimes());
         }
-        if (websiteInfo.getTimeOut() != null) {
+        if (Objects.nonNull(websiteInfo.getTimeOut())) {
             site.setTimeOut(websiteInfo.getTimeOut());
         }
-        if (websiteInfo.getCycleRetryTimes() != null) {
+        if (Objects.nonNull(websiteInfo.getCycleRetryTimes())) {
             site.setCycleRetryTimes(websiteInfo.getCycleRetryTimes());
         }
 
-        this.site = newSite;
         this.websiteLinkService = SpringContextUtil.getBean(WebsiteLinkService.class);
     }
 

@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/websiteInfo")
 public class WebsiteInfoController {
@@ -19,6 +21,7 @@ public class WebsiteInfoController {
 
     @PostMapping
     public R<Boolean> save(@RequestBody WebsiteInfo websiteInfo) {
+        websiteInfo.setUpdatedAt(LocalDateTime.now());
         return R.ok(websiteInfoService.save(websiteInfo));
     }
 
@@ -29,6 +32,7 @@ public class WebsiteInfoController {
 
     @PutMapping
     public R<Boolean> update(@RequestBody WebsiteInfo websiteInfo) {
+        websiteInfo.setUpdatedAt(LocalDateTime.now());
         return R.ok(websiteInfoService.updateById(websiteInfo));
     }
 

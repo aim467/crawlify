@@ -60,7 +60,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         task.setStatus(2);
         task.setCreatedAt(LocalDateTime.now());
         task.setUpdatedAt(LocalDateTime.now());
-        task.setWebsiteId(task.getWebsiteId());
+        task.setWebsiteId(submitTask.getWebsiteId());
         this.save(task);
         // 分发任务
         for (SpiderNode spiderNode : PlatformCache.spiderNodeCache.values()) {
@@ -75,7 +75,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
             taskNode.setUpdatedAt(LocalDateTime.now());
             taskNode.setTaskId(taskId);
             taskNode.setThreadNum(submitTask.getThreadNum());
-            taskNode.setWebsiteId(task.getWebsiteId());
+            taskNode.setWebsiteId(submitTask.getWebsiteId());
             taskNodeService.save(taskNode);
             HttpUtil.post(taskNode.getNodeUrl() + "run", JSON.toJSONString(taskNode));
         }

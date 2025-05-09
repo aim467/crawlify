@@ -26,7 +26,6 @@ public class SpiderTaskController {
 
     @DeleteMapping("/{taskId}")
     public R<Boolean> delete(@PathVariable String taskId) {
-        log.info("delete: {}", taskId);
         SpiderTask byId = spiderTaskService.getById(taskId);
         if (byId.getStatus() == 2) {
             return R.fail("任务在结束之前不允许删除");

@@ -74,15 +74,11 @@ public class IndexController {
                     .thread(taskNode.getThreadNum());
             NodeCache.spiderTaskCache.put(taskNode.getTaskId(), spider);
             spider.run();
-            // 修改状态
-            log.info("爬虫任务执行完成");
             taskNode.setStatus(3);
             taskNodeService.updateById(taskNode);
-            // 发送回调
-            log.info("执行回调");
             HttpResponse response = HttpRequest.get(master + "spiderTask/async?taskId=" + taskNode.getTaskId())
                     .header("X-Crawlify-Token", tempAuthorizationKey).execute();
-            log.info("回调结果：{}", response);
+            log.info("回调结果：{}", response.body());
         });
         return R.ok();
     }

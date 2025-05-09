@@ -11,7 +11,7 @@
  Target Server Version : 80100
  File Encoding         : 65001
 
- Date: 21/04/2025 21:42:31
+ Date: 09/05/2025 15:07:49
 */
 
 SET NAMES utf8mb4;
@@ -74,21 +74,21 @@ CREATE TABLE `task_node`  (
 -- Table structure for website_info
 -- ----------------------------
 DROP TABLE IF EXISTS `website_info`;
-CREATE TABLE `website_info` (
-    `id` int NOT NULL AUTO_INCREMENT,
-    `name` varchar(255) DEFAULT NULL COMMENT '网站名称',
-    `base_url` varchar(255) DEFAULT NULL COMMENT '起始url',
-    `domain` varchar(255) DEFAULT NULL COMMENT '域名',
-    `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` datetime DEFAULT NULL COMMENT '更新时间',
-    `charset` varchar(10) DEFAULT NULL COMMENT '字符编码',
-    `headers` int DEFAULT NULL COMMENT '请求头',
-    `cookies` int DEFAULT NULL COMMENT '此网站的cookie',
-    `time_out` int DEFAULT NULL COMMENT '超时时间(毫秒)',
-    `retry_times` int DEFAULT NULL COMMENT '重试次数',
-    `cycle_retry_times` int DEFAULT NULL COMMENT '循环重试次数',
-    PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `website_info`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `base_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `domain` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NULL DEFAULT NULL,
+  `charset` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '字符编码',
+  `headers` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '请求头',
+  `cookies` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '此网站的cookie',
+  `time_out` int NULL DEFAULT NULL COMMENT '超时时间(毫秒)',
+  `retry_times` int NULL DEFAULT NULL COMMENT '重试次数',
+  `cycle_retry_times` int NULL DEFAULT NULL COMMENT '循环重试次数',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for website_link
@@ -104,6 +104,6 @@ CREATE TABLE `website_link`  (
   `ext_link` tinyint NULL DEFAULT NULL COMMENT '外部链接(1=true, 0=false)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `website_link_pk`(`website_id` ASC, `url` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 71550 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 103007 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;
