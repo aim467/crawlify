@@ -23,6 +23,12 @@
             <if test="query.status != null">
                 AND st.status = #{query.status}
             </if>
+            <if test="query.startTime != null">
+                AND st.created_at >= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND st.created_at &lt;= #{query.endTime}
+            </if>
         </where>
         order by st.created_at desc
     </select>
