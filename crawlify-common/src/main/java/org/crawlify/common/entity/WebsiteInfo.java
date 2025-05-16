@@ -1,17 +1,20 @@
 package org.crawlify.common.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * 网站信息实体类，用于存储网站的基本信息。
  */
 @Data
-@TableName(value = "website_info")
+@TableName(value = "website_info", autoResultMap = true)
 public class WebsiteInfo {
     /**
      * 主键ID，自增。
@@ -42,12 +45,14 @@ public class WebsiteInfo {
     /**
      * 请求头信息，JSON格式存储。
      */
-    private String headers;
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> headers;
 
     /**
      * Cookie信息，JSON格式存储。
      */
-    private String cookies;
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> cookies;
 
     /**
      * 请求超时时间（毫秒）。

@@ -1,5 +1,6 @@
 package org.crawlify.node.processor;
 
+import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.entity.SpiderTask;
 import org.crawlify.common.entity.WebsiteInfo;
@@ -18,6 +19,7 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -37,7 +39,9 @@ public class LinkProcessor implements PageProcessor {
         // 初始化 site 变量
         this.site = Site.me();
         site.setDomain(websiteInfo.getDomain());
-        site.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        site.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Chrome/91.0.4472.124 Safari/537.36");
+
         if (StringUtils.hasText(websiteInfo.getCharset())) {
             site.setCharset(websiteInfo.getCharset());
         }
@@ -49,6 +53,16 @@ public class LinkProcessor implements PageProcessor {
         }
         if (Objects.nonNull(websiteInfo.getCycleRetryTimes())) {
             site.setCycleRetryTimes(websiteInfo.getCycleRetryTimes());
+        }
+        if (CollectionUtils.isEmpty(websiteInfo.getHeaders())) {
+            websiteInfo.getHeaders().forEach((key, value) -> {
+                site.addHeader(key, value.toString());
+            });
+        }
+        if (CollectionUtils.isEmpty(websiteInfo.getCookies())) {
+            websiteInfo.getCookies().forEach((key, value) -> {
+                site.addCookie(key, value.toString());
+            });
         }
 
         this.websiteLinkService = SpringContextUtil.getBean(WebsiteLinkService.class);
