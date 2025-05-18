@@ -9,9 +9,11 @@ import org.crawlify.common.entity.WebsiteInfo;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.service.TaskNodeService;
 import org.crawlify.common.service.WebsiteInfoService;
+import org.crawlify.downloader.OkHttpDownloader;
 import org.crawlify.node.cache.NodeCache;
 import org.crawlify.node.config.RedisScheduler;
 import org.crawlify.node.processor.LinkProcessor;
+import org.crawlify.pipeline.DatabasePipeline;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -27,7 +29,9 @@ import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -70,6 +74,7 @@ public class IndexController {
                     .setScheduler(new RedisScheduler(redisTemplate, stringRedisTemplate,
                             "bloom_" + taskNode.getTaskId(),
                             "queue_" + taskNode.getTaskId(), bitSize, seeds))
+                    .setPipelines(List.of(new DatabasePipeline()))
                     .addUrl(websiteInfo.getBaseUrl())
                     .thread(taskNode.getThreadNum());
             NodeCache.spiderTaskCache.put(taskNode.getTaskId(), spider);

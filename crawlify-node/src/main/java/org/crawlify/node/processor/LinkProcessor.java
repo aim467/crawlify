@@ -54,12 +54,12 @@ public class LinkProcessor implements PageProcessor {
         if (Objects.nonNull(websiteInfo.getCycleRetryTimes())) {
             site.setCycleRetryTimes(websiteInfo.getCycleRetryTimes());
         }
-        if (CollectionUtils.isEmpty(websiteInfo.getHeaders())) {
+        if (!CollectionUtils.isEmpty(websiteInfo.getHeaders())) {
             websiteInfo.getHeaders().forEach((key, value) -> {
                 site.addHeader(key, value.toString());
             });
         }
-        if (CollectionUtils.isEmpty(websiteInfo.getCookies())) {
+        if (!CollectionUtils.isEmpty(websiteInfo.getCookies())) {
             websiteInfo.getCookies().forEach((key, value) -> {
                 site.addCookie(key, value.toString());
             });
@@ -72,9 +72,10 @@ public class LinkProcessor implements PageProcessor {
     @Override
     public void process(Page page) {
         // 如果不是网页类型，跳过搜索url部分
+        page.getResultItems().put("websiteId", websiteInfo.getId());
         String currentUrl = page.getUrl().toString();
         if (!LinkUtils.getUrlType(currentUrl).equals("webpage")) {
-            saveLinks(List.of(currentUrl), List.of(), websiteInfo.getId());
+            page.getResultItems().put("currentLink", currentUrl);
             return;
         }
 
@@ -84,42 +85,18 @@ public class LinkProcessor implements PageProcessor {
         List<String> targetRequests = new ArrayList<>();
         List<String> externalLinks = new ArrayList<>();
 
-
         links.forEach(link -> {
-            if (getDomain(link, websiteInfo.getDomain())) {
+            if (LinkUtils.getDomain(link, websiteInfo.getDomain())) {
                 targetRequests.add(link);
             } else {
                 externalLinks.add(link);
             }
         });
 
-//        // 过滤出webpage的添加到请求队列中
-//        targetRequests.forEach(url -> {
-//            if (LinkUtils.getUrlType(url).equals("webpage")) {
-//                page.addTargetRequest(url);
-//            }
-//        });
-//
-//        List<String> webpageLinks = targetRequests.parallelStream().filter(url -> LinkUtils.getUrlType(url).equals("webpage")).collect(Collectors.toList());
-//
-//        page.addTargetRequests(webpageLinks);
-
         // 添加同域名请求
         page.addTargetRequests(targetRequests);
-        // 此页面也保存到数据库
-        targetRequests.add(page.getUrl().toString());
-
-        // 保存所有链接到数据库
-        saveLinks(targetRequests, externalLinks, websiteInfo.getId());
-    }
-
-    private boolean getDomain(String url, String domain) {
-        String regex = "^https?://" + "(?:[a-zA-Z0-9-]+\\.)*" + // 子域名部分（非捕获组）
-                Pattern.quote(domain) +    // 转义目标域名中的特殊字符
-                "(?::\\d+)?" +             // 可选的端口号
-                "(?:/|$|\\?)";             // 路径开始或结束
-
-        return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(url).find();
+        page.getResultItems().put("internalLinks", targetRequests);
+        page.getResultItems().put("externalLinks", externalLinks);
     }
 
     private void saveLinks(List<String> internalUrls, List<String> externalUrls, Integer websiteId) {

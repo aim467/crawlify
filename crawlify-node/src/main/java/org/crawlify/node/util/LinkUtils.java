@@ -103,6 +103,7 @@ public class LinkUtils {
 
     /**
      * 获取 URL 的类型
+     *
      * @param urlString URL
      * @return 类型
      */
@@ -216,5 +217,21 @@ public class LinkUtils {
             log.error("解析相对 URL 失败：{}, 错误信息：{}", trimmedLinkUrl, e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * 检查 URL 是否属于指定域名。
+     *
+     * @param url    要检查的 URL
+     * @param domain 指定的域名
+     * @return 如果 URL 属于指定域名则返回 true，否则返回 false
+     */
+    public static boolean getDomain(String url, String domain) {
+        String regex = "^https?://" + "(?:[a-zA-Z0-9-]+\\.)*" + // 子域名部分（非捕获组）
+                Pattern.quote(domain) +    // 转义目标域名中的特殊字符
+                "(?::\\d+)?" +             // 可选的端口号
+                "(?:/|$|\\?)";             // 路径开始或结束
+
+        return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(url).find();
     }
 }
