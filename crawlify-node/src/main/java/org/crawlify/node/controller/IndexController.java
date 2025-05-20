@@ -2,21 +2,17 @@ package org.crawlify.node.controller;
 
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.entity.TaskNode;
 import org.crawlify.common.entity.WebsiteInfo;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.service.TaskNodeService;
 import org.crawlify.common.service.WebsiteInfoService;
-import org.crawlify.downloader.OkHttpDownloader;
 import org.crawlify.node.cache.NodeCache;
 import org.crawlify.node.config.RedisScheduler;
 import org.crawlify.node.processor.LinkProcessor;
-import org.crawlify.pipeline.DatabasePipeline;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.crawlify.node.pipeline.DatabasePipeline;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -25,14 +21,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/")
@@ -79,7 +71,14 @@ public class IndexController {
                     .thread(taskNode.getThreadNum());
             NodeCache.spiderTaskCache.put(taskNode.getTaskId(), spider);
             spider.run();
-            taskNode.setStatus(3);
+            if (spider.getStatus() == Spider.Status.Completed) {
+                log.info("爬虫任务: {} 完成", taskNode.getTaskId());
+                taskNode.setStatus(3);
+            }
+            if (spider.getStatus() == Spider.Status.Stopped || spider.getStatus() == Spider.Status.ForceStopped) {
+                log.info("爬虫任务: {} 停止", taskNode.getTaskId());
+                taskNode.setStatus(4);
+            }
             taskNodeService.updateById(taskNode);
             HttpResponse response = HttpRequest.get(master + "spiderTask/async?taskId=" + taskNode.getTaskId())
                     .header("X-Crawlify-Token", tempAuthorizationKey).execute();

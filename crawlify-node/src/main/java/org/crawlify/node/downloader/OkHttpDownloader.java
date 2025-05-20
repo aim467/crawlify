@@ -1,4 +1,4 @@
-package org.crawlify.downloader;
+package org.crawlify.node.downloader;
 
 import okhttp3.CookieJar;
 import okhttp3.OkHttpClient;
@@ -16,7 +16,6 @@ import us.codecraft.webmagic.proxy.Proxy; // WebMagic's Proxy
 import us.codecraft.webmagic.proxy.ProxyProvider;
 import us.codecraft.webmagic.selector.PlainText;
 import us.codecraft.webmagic.utils.CharsetUtils;
-import us.codecraft.webmagic.utils.HttpClientUtils; // May need similar for OkHttp headers
 import us.codecraft.webmagic.utils.HttpConstant;
 
 

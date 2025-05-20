@@ -1,4 +1,4 @@
-package org.crawlify.pipeline;
+package org.crawlify.node.pipeline;
 
 import cn.hutool.extra.spring.SpringUtil;
 import lombok.extern.slf4j.Slf4j;
