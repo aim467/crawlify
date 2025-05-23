@@ -45,6 +45,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
          * 2 运行
          * 3 完成
          * 4 停止
+         * 5 异常
          */
         // 根据 websiteId 查询任务
         LambdaQueryWrapper<SpiderTask> wrapper = new LambdaQueryWrapper<>();
@@ -121,8 +122,10 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         boolean hasInit = nodes.stream().anyMatch(n -> n.getStatus() == 1);
         boolean allFinished = nodes.stream().allMatch(n -> n.getStatus() == 3);
         boolean allStopped = nodes.stream().allMatch(n -> n.getStatus() == 4);
+        boolean allError = nodes.stream().allMatch(n -> n.getStatus() == 5);
 
         int newStatus;
+
 
         if (allFinished) {
             newStatus = 3; // 完成
@@ -132,14 +135,16 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
             newStatus = 1; // 初始化
         } else if (allStopped) {
             newStatus = 4; // 停止
+        } else if (allError) {
+            newStatus = 5;
         } else {
             // 部分完成、部分停止等情况
-            newStatus = 5;
+            newStatus = 6;
         }
-        SpiderTask task = getById(taskId);
 
-        // 如果为完成，那么需要删除 redis queue key 和 bloom key
-        if (newStatus == 3 || newStatus == 4 || newStatus == 5) {
+        SpiderTask task = getById(taskId);
+        // 如果为以下状态则删除缓存
+        if (newStatus == 3 || newStatus == 4 || newStatus == 5 || newStatus == 6) {
             redisTemplate.delete("queue_" + task.getTaskId());
             redisTemplate.delete("bloom_" + task.getTaskId());
         }
@@ -155,7 +160,6 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
     @Override
     public PageResult<SpiderTaskVo> listTask(SpiderTaskQuery query) {
         Page<SpiderTask> page = new Page<>(query.getPage(), query.getSize());
-
         IPage<SpiderTaskVo> taskIPage = this.baseMapper.listTask(page, query);
         PageResult<SpiderTaskVo> pageResult = new PageResult<>();
         pageResult.setCurrent(taskIPage.getCurrent());

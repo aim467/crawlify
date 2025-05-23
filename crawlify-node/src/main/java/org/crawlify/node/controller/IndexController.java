@@ -8,6 +8,7 @@ import org.crawlify.common.entity.WebsiteInfo;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.service.TaskNodeService;
 import org.crawlify.common.service.WebsiteInfoService;
+import org.crawlify.node.NodeEndListener;
 import org.crawlify.node.cache.NodeCache;
 import org.crawlify.node.config.RedisScheduler;
 import org.crawlify.node.processor.LinkProcessor;
@@ -70,19 +71,10 @@ public class IndexController {
                     .addUrl(websiteInfo.getBaseUrl())
                     .thread(taskNode.getThreadNum());
             NodeCache.spiderTaskCache.put(taskNode.getTaskId(), spider);
-            spider.run();
-            if (spider.getStatus() == Spider.Status.Completed) {
-                log.info("爬虫任务: {} 完成", taskNode.getTaskId());
-                taskNode.setStatus(3);
-            }
-            if (spider.getStatus() == Spider.Status.Stopped || spider.getStatus() == Spider.Status.ForceStopped) {
-                log.info("爬虫任务: {} 停止", taskNode.getTaskId());
-                taskNode.setStatus(4);
-            }
-            taskNodeService.updateById(taskNode);
-            HttpResponse response = HttpRequest.get(master + "spiderTask/async?taskId=" + taskNode.getTaskId())
-                    .header("X-Crawlify-Token", tempAuthorizationKey).execute();
-            log.info("回调结果：{}", response.body());
+            NodeEndListener nodeEndListener = new NodeEndListener(taskNodeService, taskNode,
+                    master, tempAuthorizationKey);
+            spider.addSpiderEndListener(nodeEndListener);
+            spider.runAsync();
         });
         return R.ok();
     }
@@ -93,6 +85,8 @@ public class IndexController {
         if (spider != null) {
             spider.stop();
             log.info("爬虫已停止");
+            // 删除缓存中的爬虫任务
+            NodeCache.spiderTaskCache.remove(taskId);
             return R.ok();
         }
         return R.fail("未找到爬虫");
