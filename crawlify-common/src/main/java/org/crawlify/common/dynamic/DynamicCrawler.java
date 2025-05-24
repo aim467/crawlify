@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import okhttp3.*; // OkHttp 核心类
 import org.crawlify.common.entity.DynamicConfig;
+import org.crawlify.common.utils.RandomUserAgent;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
@@ -194,6 +195,7 @@ public class DynamicCrawler {
         // 添加 Headers
         if (config.getParsedHeaders() != null) {
             config.getParsedHeaders().forEach(requestBuilder::addHeader);
+            config.getParsedHeaders().put("UserAgent", RandomUserAgent.getRandomUserAgent());
         }
 
         // 处理 GET 请求
