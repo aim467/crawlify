@@ -29,6 +29,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import io.netty.channel.Channel;
+import org.crawlify.common.netty.PlatformServerHandler;
+import org.crawlify.common.protocol.Message;
+
 @Service
 public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderTask> implements SpiderTaskService {
 
@@ -63,22 +67,31 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         task.setUpdatedAt(LocalDateTime.now());
         task.setWebsiteId(submitTask.getWebsiteId());
         this.save(task);
-        // 分发任务
+
+        // 使用Netty发送任务
         for (SpiderNode spiderNode : PlatformCache.spiderNodeCache.values()) {
             if (spiderNode.getStatus() == 0) {
                 continue;
             }
-            TaskNode taskNode = new TaskNode();
-            taskNode.setNodeId(UUID.randomUUID().toString());
-            taskNode.setNodeUrl("http://" + spiderNode.getNodeIp() + ":" + spiderNode.getNodePort() + "/");
-            taskNode.setStatus(2);
-            taskNode.setCreatedAt(LocalDateTime.now());
-            taskNode.setUpdatedAt(LocalDateTime.now());
-            taskNode.setTaskId(taskId);
-            taskNode.setThreadNum(submitTask.getThreadNum());
-            taskNode.setWebsiteId(submitTask.getWebsiteId());
-            taskNodeService.save(taskNode);
-            HttpUtil.post(taskNode.getNodeUrl() + "run", JSON.toJSONString(taskNode));
+
+            Channel channel = PlatformServerHandler.getNodeChannel(spiderNode.getNodeId());
+            if (channel != null && channel.isActive()) {
+                TaskNode taskNode = new TaskNode();
+                taskNode.setNodeId(UUID.randomUUID().toString());
+                taskNode.setNodeUrl("http://" + spiderNode.getNodeIp() + ":" + spiderNode.getNodePort() + "/");
+                taskNode.setStatus(2);
+                taskNode.setCreatedAt(LocalDateTime.now());
+                taskNode.setUpdatedAt(LocalDateTime.now());
+                taskNode.setTaskId(taskId);
+                taskNode.setThreadNum(submitTask.getThreadNum());
+                taskNode.setWebsiteId(submitTask.getWebsiteId());
+                taskNodeService.save(taskNode);
+
+                Message message = new Message();
+                message.setType(Message.MessageType.TASK_ASSIGN);
+                message.setData(taskNode);
+                channel.writeAndFlush(message);
+            }
         }
         return R.ok();
     }
@@ -111,12 +124,13 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class})
+    @Transactional(rollbackFor = { Exception.class })
     public R asyncTaskStatus(String taskId) {
         LambdaQueryWrapper<TaskNode> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TaskNode::getTaskId, taskId);
         List<TaskNode> nodes = taskNodeService.list(wrapper);
-        if (nodes.isEmpty()) return R.ok();
+        if (nodes.isEmpty())
+            return R.ok();
 
         boolean hasRunning = nodes.stream().anyMatch(n -> n.getStatus() == 2);
         boolean hasInit = nodes.stream().anyMatch(n -> n.getStatus() == 1);
@@ -125,7 +139,6 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         boolean allError = nodes.stream().allMatch(n -> n.getStatus() == 5);
 
         int newStatus;
-
 
         if (allFinished) {
             newStatus = 3; // 完成
