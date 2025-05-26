@@ -6,6 +6,8 @@ import io.netty.channel.Channel;
 import org.crawlify.common.cache.PlatformCache;
 import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.protocol.Message;
+import org.crawlify.common.service.SpiderTaskService;
+import org.crawlify.common.utils.SpringContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +22,10 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+
         if (msg instanceof Message) {
             Message message = (Message) msg;
+            logger.info("Received message type: {}", message.getType());
             switch (message.getType()) {
                 case REGISTER:
                     handleRegister(ctx, message);
@@ -29,7 +33,7 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
                 case HEARTBEAT:
                     handleHeartbeat(message);
                     break;
-                case TASK_STATUS:
+                case ASYNC_TASK:
                     handleTaskStatus(message);
                     break;
                 default:
@@ -65,12 +69,15 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
         if (node != null) {
             node.setStatus(1);
             logger.debug("Received heartbeat from node: {}", nodeId);
+            PlatformCache.spiderNodeCache.put(nodeId, node);
         }
+
     }
 
     private void handleTaskStatus(Message message) {
-        // 处理任务状态更新
-        // TODO: 实现任务状态更新逻辑
+        logger.info("Received task_id: {}", message.getData());
+        SpiderTaskService spiderTaskService = SpringContextUtil.getBean(SpiderTaskService.class);
+        spiderTaskService.asyncTaskStatus(message.getData().toString());
     }
 
     @Override

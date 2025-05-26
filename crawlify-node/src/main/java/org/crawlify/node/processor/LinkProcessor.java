@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.entity.WebsiteInfo;
 import org.crawlify.common.service.WebsiteLinkService;
 import org.crawlify.node.util.LinkUtils;
-import org.crawlify.node.util.SpringContextUtil;
+import org.crawlify.common.utils.SpringContextUtil;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import us.codecraft.webmagic.Page;

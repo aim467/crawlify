@@ -10,6 +10,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,9 @@ public class NettyClient {
 
     private EventLoopGroup group;
 
+    @Autowired
+    private NodeClientHandler nodeClientHandler;
+
     @PostConstruct
     public void start() throws Exception {
         group = new NioEventLoopGroup();
@@ -41,7 +45,7 @@ public class NettyClient {
                             ch.pipeline().addLast(
                                     new ObjectEncoder(),
                                     new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
-                                    new NodeClientHandler());
+                                    nodeClientHandler);
                         }
                     });
 

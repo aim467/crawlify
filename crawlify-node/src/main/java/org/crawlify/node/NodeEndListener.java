@@ -1,11 +1,10 @@
 package org.crawlify.node;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.entity.TaskNode;
-import org.crawlify.common.service.SpiderTaskService;
 import org.crawlify.common.service.TaskNodeService;
+import org.crawlify.node.netty.NodeClientHandler;
+import org.crawlify.common.utils.SpringContextUtil;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.SpiderEndListener;
 
@@ -57,8 +56,13 @@ public class NodeEndListener implements SpiderEndListener {
         taskNode.setStatus(status);
         taskNode.setUpdatedAt(LocalDateTime.now());
         taskNodeService.updateById(taskNode);
-        HttpResponse response = HttpRequest.get(masterUrl + "spiderTask/async?taskId=" + taskNode.getTaskId())
-                .header("X-Crawlify-Token", tempAuthorizationKey).execute();
-        log.info("回调结果：{}", response.body());
+        // 通过Netty发送ASYNC_TASK消息
+        try {
+            NodeClientHandler nodeClientHandler = SpringContextUtil.getBean(NodeClientHandler.class);
+            nodeClientHandler.handleAsyncTask(taskNode.getTaskId());
+            log.info("通过Netty同步任务状态: {}", taskNode.getTaskId());
+        } catch (Exception e) {
+            log.error("通过Netty同步任务状态失败", e);
+        }
     }
 }

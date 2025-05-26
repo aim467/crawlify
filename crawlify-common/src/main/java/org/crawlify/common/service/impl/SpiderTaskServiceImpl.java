@@ -111,8 +111,15 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         wrapper.eq(TaskNode::getTaskId, taskId);
         List<TaskNode> list = taskNodeService.list(wrapper);
         for (TaskNode taskNode : list) {
-            String url = taskNode.getNodeUrl() + "stop?taskId=" + taskNode.getTaskId();
-            HttpUtil.get(url);
+            // 通过Netty向node发送STOP消息
+            Channel channel = PlatformServerHandler.getNodeChannel(taskNode.getNodeId());
+            if (channel != null && channel.isActive()) {
+                Message message = new Message();
+                message.setType(Message.MessageType.STOP);
+                message.setNodeId(taskNode.getNodeId());
+                message.setData(taskNode.getTaskId());
+                channel.writeAndFlush(message);
+            }
             taskNode.setStatus(4);
             task.setUpdatedAt(LocalDateTime.now());
             taskNodeService.updateById(taskNode);
