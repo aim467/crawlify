@@ -1,6 +1,5 @@
 package org.crawlify.node.pipeline;
 
-import cn.hutool.extra.spring.SpringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.entity.WebsiteLink;
 import org.crawlify.common.service.WebsiteLinkService;
@@ -34,7 +33,7 @@ public class DatabasePipeline implements Pipeline {
             websiteLink.setUrlType(LinkUtils.typeMapping.get(LinkUtils.getUrlType(currentLink)));
             websiteLink.setUpdatedAt(now);
             websiteLinkService.batchSaveWebsiteLink(List.of(websiteLink));
-            log.info("保存网页链接：" + currentLink);
+            log.info("保存网页链接：{}", currentLink);
             return;
         }
 
@@ -51,7 +50,7 @@ public class DatabasePipeline implements Pipeline {
         processLinks(internalLinks, websiteId, false, websiteLinks, now);
         processLinks(externalLinks, websiteId, true, websiteLinks, now);
         if (!CollectionUtils.isEmpty(websiteLinks)) {
-            log.info("本次保存了" + websiteLinks.size() + "条链接");
+            log.info("本次保存了{}条链接", websiteLinks.size());
             websiteLinkService.batchSaveWebsiteLink(websiteLinks);
         }
 
@@ -60,7 +59,7 @@ public class DatabasePipeline implements Pipeline {
     private void processLinks(List<String> links, Integer websiteId, Boolean isExternal,
                               List<WebsiteLink> websiteLinks, LocalDateTime now) {
         if (links == null) return;
-
+        long startTime = System.currentTimeMillis();
         links.forEach(url -> {
             WebsiteLink websiteLink = new WebsiteLink();
             websiteLink.setUrl(url);
@@ -71,5 +70,6 @@ public class DatabasePipeline implements Pipeline {
             websiteLink.setUpdatedAt(now);
             websiteLinks.add(websiteLink);
         });
+        log.info("本次处理了{}条链接，耗时{}ms", links.size(), System.currentTimeMillis() - startTime);
     }
 }

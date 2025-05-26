@@ -1,10 +1,7 @@
 package org.crawlify.node.processor;
 
-import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
-import org.crawlify.common.entity.SpiderTask;
 import org.crawlify.common.entity.WebsiteInfo;
-import org.crawlify.common.entity.WebsiteLink;
 import org.crawlify.common.service.WebsiteLinkService;
 import org.crawlify.node.util.LinkUtils;
 import org.crawlify.node.util.SpringContextUtil;
@@ -14,16 +11,10 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.processor.PageProcessor;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class LinkProcessor implements PageProcessor {
@@ -97,31 +88,6 @@ public class LinkProcessor implements PageProcessor {
         page.addTargetRequests(targetRequests);
         page.getResultItems().put("internalLinks", targetRequests);
         page.getResultItems().put("externalLinks", externalLinks);
-    }
-
-    private void saveLinks(List<String> internalUrls, List<String> externalUrls, Integer websiteId) {
-        List<WebsiteLink> websiteLinks = new ArrayList<>();
-
-        if (internalUrls.isEmpty() && externalUrls.isEmpty()) {
-            return;
-        }
-
-        internalUrls.forEach(url -> addLinkToWebsiteLinks(websiteLinks, url, websiteId, false));
-        externalUrls.forEach(url -> addLinkToWebsiteLinks(websiteLinks, url, websiteId, true));
-
-        websiteLinkService.batchSaveWebsiteLink(websiteLinks);
-    }
-
-    private void addLinkToWebsiteLinks(List<WebsiteLink> websiteLinks, String url, Integer websiteId, Boolean isExternal) {
-        WebsiteLink websiteLink = new WebsiteLink();
-        LocalDateTime now = LocalDateTime.now();
-        websiteLink.setUrl(url);
-        websiteLink.setWebsiteId(websiteId);
-        websiteLink.setExtLink(isExternal);
-        websiteLink.setCreatedAt(now);
-        websiteLink.setUrlType(LinkUtils.typeMapping.get(LinkUtils.getUrlType(url)));
-        websiteLink.setUpdatedAt(now);
-        websiteLinks.add(websiteLink);
     }
 
     @Override

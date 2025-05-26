@@ -1,7 +1,5 @@
 package org.crawlify.node.controller;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.entity.TaskNode;
 import org.crawlify.common.entity.WebsiteInfo;
