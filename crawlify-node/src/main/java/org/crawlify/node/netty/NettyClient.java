@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 
 @Component
 public class NettyClient {
@@ -27,7 +28,7 @@ public class NettyClient {
 
     private EventLoopGroup group;
 
-    @Autowired
+    @Resource
     private NodeClientHandler nodeClientHandler;
 
     @PostConstruct

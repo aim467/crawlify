@@ -1,11 +1,14 @@
 server:
   port: 4444
 
+netty:
+  port: 8888
+
 spring:
   application:
     name: crawlify-platform
   datasource:
-    url: jdbc:mysql://localhost:3307/crawlify?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/crawlify?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -17,7 +20,7 @@ spring:
       maximum-pool-size: 30
       pool-name: crawlify-platform
   redis:
-    host: localhost
+    host: 192.168.1.188
     port: 6379
     password:
     database: 10
@@ -57,7 +60,3 @@ sa-token:
 crawlify:
   username: admin
   password: 123456
-
-
-netty:
-  port: 8888

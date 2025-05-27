@@ -50,11 +50,8 @@ public class IndexController {
     @Value("${temp-authorization-key}")
     private String tempAuthorizationKey;
 
-    @GetMapping("/ping")
-    public R ping() {
-        return R.ok();
-    }
 
+    @Deprecated
     @PostMapping("/run")
     public R runSpiderTask(@RequestBody TaskNode taskNode) {
         threadPoolTaskExecutor.execute(() -> {
@@ -69,14 +66,15 @@ public class IndexController {
                     .addUrl(websiteInfo.getBaseUrl())
                     .thread(taskNode.getThreadNum());
             NodeCache.spiderTaskCache.put(taskNode.getTaskId(), spider);
-            NodeEndListener nodeEndListener = new NodeEndListener(taskNodeService, taskNode,
-                    master, tempAuthorizationKey);
+            NodeEndListener nodeEndListener = new NodeEndListener(taskNode
+            );
             spider.addSpiderEndListener(nodeEndListener);
             spider.runAsync();
         });
         return R.ok();
     }
 
+    @Deprecated
     @GetMapping("/stop")
     public R stopSpiderTask(String taskId) {
         Spider spider = NodeCache.spiderTaskCache.get(taskId);

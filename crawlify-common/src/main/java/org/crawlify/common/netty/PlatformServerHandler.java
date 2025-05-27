@@ -22,10 +22,9 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-
         if (msg instanceof Message) {
             Message message = (Message) msg;
-            logger.info("Received message type: {}", message.getType());
+            logger.info("Received message: {}", message);
             switch (message.getType()) {
                 case REGISTER:
                     handleRegister(ctx, message);
@@ -43,7 +42,6 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void handleRegister(ChannelHandlerContext ctx, Message message) {
-        logger.info("Received register request from node: {}", message.getNodeId());
         String nodeId = message.getNodeId();
         SpiderNode node = (SpiderNode) message.getData();
 
@@ -59,7 +57,6 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
         response.setType(Message.MessageType.REGISTER);
         response.setData("success");
         ctx.writeAndFlush(response);
-
         logger.info("Node registered: {}", nodeId);
     }
 
@@ -71,7 +68,6 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
             logger.debug("Received heartbeat from node: {}", nodeId);
             PlatformCache.spiderNodeCache.put(nodeId, node);
         }
-
     }
 
     private void handleTaskStatus(Message message) {

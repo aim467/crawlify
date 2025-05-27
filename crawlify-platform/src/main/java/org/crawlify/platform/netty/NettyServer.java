@@ -45,7 +45,6 @@ public class NettyServer {
                                     new PlatformServerHandler());
                         }
                     });
-
             b.bind(port).sync();
         } catch (Exception e) {
             bossGroup.shutdownGracefully();

@@ -29,36 +29,65 @@ import java.net.SocketException;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * NodeClientHandler 是 Netty 客户端处理器，负责与服务端通信。
+ * 主要功能包括：
+ * - 节点注册（REGISTER）
+ * - 心跳发送（HEARTBEAT）
+ * - 任务分配处理（TASK_ASSIGN）
+ * - 任务停止处理（STOP）
+ * - 异步任务完成通知（ASYNC_TASK）
+ *
+ * 使用 Spring 管理生命周期，并集成 Redis、WebMagic 框架进行爬虫任务调度和数据持久化。
+ */
 @Component
 public class NodeClientHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(NodeClientHandler.class);
 
-    @Value("${node.id}")
-    private String nodeId;
-
+    /**
+     * 从配置文件注入当前节点 server 端口
+     */
     @Value("${server.port}")
-    private int nodePort;
+    private Integer nodePort;
 
+    /**
+     * 保存当前连接上下文，用于后续发送消息
+     */
     private ChannelHandlerContext ctx;
 
+    /**
+     * Redis 操作模板，用于分布式任务队列
+     */
     @Resource
     private RedisTemplate redisTemplate;
+
+    /**
+     * Redis 字符串操作模板
+     */
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private WebsiteInfoService websiteInfoService;
+
+    /**
+     * 当客户端连接建立成功时触发
+     * @param ctx 连接上下文
+     */
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         this.ctx = ctx;
-        // 注册节点
         registerNode();
     }
 
+    /**
+     * 注册节点到服务端
+     */
     private void registerNode() {
         Message message = new Message();
         message.setType(Message.MessageType.REGISTER);
 
         SpiderNode node = new SpiderNode();
-        node.setNodeId(nodeId);
 
         try {
             node.setNodeIp(IpUtils.getLocalNonLoopbackIpAddress());
@@ -67,9 +96,13 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
             throw new RuntimeException(e);
         }
 
-        node.setNodePort(80);
+        node.setNodePort(nodePort);
         node.setNodeId(UUID.randomUUID().toString());
         node.setStatus(1);
+        // 根据IP 和 PORT 生成唯一的 nodeId (md5)
+        String nodeId = UUID.nameUUIDFromBytes((node.getNodeIp() + ":" + node.getNodePort()).getBytes()).toString();
+        node.setNodeId(nodeId);
+
         message.setNodeId(node.getNodeId());
 
         message.setData(node);
@@ -78,19 +111,23 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 每秒执行一次
+     * 每秒执行一次，发送心跳包到服务端
      */
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(cron = "1 * * * * *")
     public void sendHeartbeat() {
         logger.info("发送心跳包");
         if (ctx != null && ctx.channel().isActive()) {
             Message message = new Message();
             message.setType(Message.MessageType.HEARTBEAT);
-            message.setNodeId(nodeId);
             ctx.writeAndFlush(message);
         }
     }
 
+    /**
+     * 处理接收到的消息
+     * @param ctx 连接上下文
+     * @param msg 接收到的消息
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         logger.info("Received message: {}", msg);
@@ -109,15 +146,12 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    /**
+     * 处理任务分配消息
+     * @param message 任务分配消息
+     */
     private void handleTaskAssign(Message message) {
-        // 处理任务分配
-        logger.info("Received task assign: {}", message.getData());
-
         TaskNode taskNode = (TaskNode) message.getData();
-        TaskNodeService taskNodeService = SpringContextUtil.getBean(TaskNodeService.class);
-
-        WebsiteInfoService websiteInfoService = SpringContextUtil.getBean(WebsiteInfoService.class);
-
         WebsiteInfo websiteInfo = websiteInfoService.getById(taskNode.getWebsiteId());
         int bitSize = 1 << 24; // 默认 16MB
         int[] seeds = new int[]{7, 11, 13, 31, 37, 61}; // 默认 6 个哈希函数
@@ -129,22 +163,19 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
                 .addUrl(websiteInfo.getBaseUrl())
                 .thread(taskNode.getThreadNum());
         NodeCache.spiderTaskCache.put(taskNode.getTaskId(), spider);
-        NodeEndListener nodeEndListener = new NodeEndListener(taskNodeService, taskNode,
-                null, null);
+        NodeEndListener nodeEndListener = new NodeEndListener(taskNode);
         spider.addSpiderEndListener(nodeEndListener);
         spider.runAsync();
     }
 
     /**
      * 当 Spider 完成时，调用这个方法，给 master 发送任务完成的消息（Netty方式）
-     *
-     * @param taskId
+     * @param taskId 任务ID
      */
     public void handleAsyncTask(String taskId) {
         if (ctx != null && ctx.channel().isActive()) {
             Message message = new Message();
             message.setType(Message.MessageType.ASYNC_TASK);
-            message.setNodeId(nodeId);
             message.setData(taskId);
             ctx.writeAndFlush(message);
             logger.info("通过Netty发送任务完成消息: {}", taskId);
@@ -154,7 +185,8 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 当 platform 发送 Message 时， Message.Type 为 Stop，调用这个方法，停止任务
+     * 当 platform 发送 Message 时， Message.Type 为 Stop，调用这个方法，停止任务，仅需停止，状态由 platform 控制
+     * @param message 停止任务的消息
      */
     public void handleTaskStop(Message message) {
         String taskId = (String) message.getData();
@@ -163,8 +195,6 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
             spider.stop();
             NodeCache.spiderTaskCache.remove(taskId);
             logger.info("已停止任务: {}", taskId);
-            // 可选：向 master 发送任务已停止的消息
-//            handleAsyncTask(taskId); // 也可自定义 STOPPED 类型
         } else {
             logger.warn("未找到需要停止的任务: {}", taskId);
         }

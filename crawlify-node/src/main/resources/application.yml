@@ -4,11 +4,17 @@ server:
 crawlify:
   master: http://localhost:4444/
 
+node:
+  id: ${random.uuid}  # 或者指定固定ID
+platform:
+  host: localhost
+  port: 8888
+
 spring:
   application:
     name: crawlify-node
   datasource:
-    url: jdbc:mysql://localhost:3307/crawlify?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useAffectedRows=true&allowMultiQueries=true&multiStatementAllow=true
+    url: jdbc:mysql://localhost:3306/crawlify?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useAffectedRows=true&allowMultiQueries=true&multiStatementAllow=true
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -20,7 +26,7 @@ spring:
       maximum-pool-size: 30
       pool-name: crawlify-node
   redis:
-    host: localhost
+    host: 192.168.1.188
     port: 6379
     password:
     database: 10
@@ -36,11 +42,3 @@ spring:
 
 
 temp-authorization-key: crawlify_node
-
-
-node:
-  id: ${random.uuid}
-
-platform:
-  host: localhost
-  port: 8888
