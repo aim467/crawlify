@@ -3,11 +3,10 @@ package org.crawlify.platform.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.dto.insert.SubmitTask;
 import org.crawlify.common.dto.query.SpiderTaskQuery;
-import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.entity.SpiderTask;
 import org.crawlify.common.service.SpiderTaskService;
-import org.crawlify.common.vo.SpiderTaskVo;
+import org.crawlify.common.vo.SpiderTaskListVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,7 +38,7 @@ public class SpiderTaskController {
     }
 
     @GetMapping("/list")
-    public R<PageResult<SpiderTaskVo>> list(SpiderTaskQuery query) {
+    public R<SpiderTaskListVo> list(SpiderTaskQuery query) {
         return R.ok(spiderTaskService.listTask(query));
     }
 

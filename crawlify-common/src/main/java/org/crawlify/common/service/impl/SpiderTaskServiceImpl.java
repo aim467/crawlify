@@ -1,7 +1,5 @@
 package org.crawlify.common.service.impl;
 
-import cn.hutool.http.HttpUtil;
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -17,7 +15,9 @@ import org.crawlify.common.entity.result.R;
 import org.crawlify.common.mapper.SpiderTaskMapper;
 import org.crawlify.common.service.SpiderTaskService;
 import org.crawlify.common.service.TaskNodeService;
+import org.crawlify.common.vo.SpiderTaskListVo;
 import org.crawlify.common.vo.SpiderTaskVo;
+import org.crawlify.common.vo.TaskStatusCount;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -178,7 +178,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
     }
 
     @Override
-    public PageResult<SpiderTaskVo> listTask(SpiderTaskQuery query) {
+    public SpiderTaskListVo listTask(SpiderTaskQuery query) {
         Page<SpiderTask> page = new Page<>(query.getPage(), query.getSize());
         IPage<SpiderTaskVo> taskIPage = this.baseMapper.listTask(page, query);
         PageResult<SpiderTaskVo> pageResult = new PageResult<>();
@@ -187,6 +187,11 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         pageResult.setSize(taskIPage.getSize());
         pageResult.setRecords(taskIPage.getRecords());
         pageResult.setTotal(taskIPage.getTotal());
-        return pageResult;
+        TaskStatusCount taskStatusCount = this.baseMapper.getTaskStatusCount();
+
+        SpiderTaskListVo spiderTaskListVo = new SpiderTaskListVo();
+        spiderTaskListVo.setPageResult(pageResult);
+        spiderTaskListVo.setTaskStatusCount(taskStatusCount);
+        return spiderTaskListVo;
     }
 }

@@ -8,10 +8,13 @@ import org.crawlify.common.dto.query.SpiderTaskQuery;
 import org.crawlify.common.entity.SpiderTask;
 import org.apache.ibatis.annotations.Mapper;
 import org.crawlify.common.vo.SpiderTaskVo;
+import org.crawlify.common.vo.TaskStatusCount;
 
 import java.util.List;
 
 @Mapper
 public interface SpiderTaskMapper extends BaseMapper<SpiderTask> {
     IPage<SpiderTaskVo> listTask(@Param("page") IPage<SpiderTask> page, @Param("query") SpiderTaskQuery query);
+
+    TaskStatusCount getTaskStatusCount();
 }

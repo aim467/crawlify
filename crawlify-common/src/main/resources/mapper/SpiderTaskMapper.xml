@@ -32,4 +32,19 @@
         </where>
         order by st.created_at desc
     </select>
+
+
+    <select id="getTaskStatusCount" resultType="org.crawlify.common.vo.TaskStatusCount">
+        SELECT
+        COUNT(CASE WHEN status = 1 THEN 1 END) AS initCount,
+        COUNT(CASE WHEN status = 2 THEN 1 END) AS runningCount,
+        COUNT(CASE WHEN status = 3 THEN 1 END) AS completedCount,
+        COUNT(CASE WHEN status = 4 THEN 1 END) AS stoppedCount,
+        COUNT(CASE WHEN status = 5 THEN 1 END) AS failedCount,
+        COUNT(CASE WHEN status = 6 THEN 1 END) AS partialCount
+        FROM
+        spider_task
+        WHERE
+        status IN (1, 2, 3, 4, 5, 6)
+    </select>
 </mapper>
