@@ -37,7 +37,6 @@ public class CorsConfig implements WebMvcConfigurer {
 
             // 如果是预检请求，则立即返回到前端
             SaRouter.match(SaHttpMethod.OPTIONS)
-                    .free(r -> System.out.println("--------OPTIONS预检请求，不做处理"))
                     .back();
         };
     }

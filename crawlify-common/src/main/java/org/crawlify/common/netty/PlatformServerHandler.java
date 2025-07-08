@@ -35,10 +35,17 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
                 case ASYNC_TASK:
                     handleTaskStatus(message);
                     break;
+                case NODE_STATUS:
+                    handleNodeStatus(message);
                 default:
                     logger.warn("Unknown message type: {}", message.getType());
             }
         }
+    }
+
+    private void handleNodeStatus(Message message) {
+       SpiderNode spiderNode = (SpiderNode)  message.getData();
+       PlatformCache.spiderNodeCache.put(spiderNode.getNodeId(), spiderNode);
     }
 
     private void handleRegister(ChannelHandlerContext ctx, Message message) {

@@ -18,4 +18,6 @@ public class SpiderNode implements Serializable {
      * 0 离线
      */
     private Integer status;
+
+    private Integer taskCount;
 }

@@ -70,6 +70,10 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
     @Resource
     private WebsiteInfoService websiteInfoService;
 
+
+    @Resource
+    private SpiderNodeHolder spiderNodeHolder;
+
     /**
      * 当客户端连接建立成功时触发
      * @param ctx 连接上下文
@@ -107,18 +111,20 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
 
         message.setData(node);
         logger.info("Register node: {}", node);
+        spiderNodeHolder.setSpiderNode(node);
         ctx.writeAndFlush(message);
     }
 
     /**
-     * 每秒执行一次，发送心跳包到服务端
+     * 每30秒执行一次
      */
-    @Scheduled(cron = "1 * * * * *")
+    @Scheduled(cron = "*/30 * * * * *")
     public void sendHeartbeat() {
-        logger.info("发送心跳包");
         if (ctx != null && ctx.channel().isActive()) {
             Message message = new Message();
             message.setType(Message.MessageType.HEARTBEAT);
+            SpiderNode spiderNode = spiderNodeHolder.getSpiderNode();
+            spiderNode.setTaskCount(NodeCache.spiderTaskCache.size());
             ctx.writeAndFlush(message);
         }
     }
@@ -145,6 +151,7 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
             }
         }
     }
+
 
     /**
      * 处理任务分配消息

@@ -1,14 +1,17 @@
 package org.crawlify.node.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.entity.TaskNode;
 import org.crawlify.common.entity.WebsiteInfo;
 import org.crawlify.common.entity.result.R;
+import org.crawlify.common.netty.PlatformServerHandler;
 import org.crawlify.common.service.TaskNodeService;
 import org.crawlify.common.service.WebsiteInfoService;
 import org.crawlify.node.NodeEndListener;
 import org.crawlify.node.cache.NodeCache;
 import org.crawlify.node.config.RedisScheduler;
+import org.crawlify.node.netty.SpiderNodeHolder;
 import org.crawlify.node.processor.LinkProcessor;
 import org.crawlify.node.pipeline.DatabasePipeline;
 import org.springframework.beans.factory.annotation.Value;
@@ -86,5 +89,15 @@ public class IndexController {
             return R.ok();
         }
         return R.fail("未找到爬虫");
+    }
+
+    @Resource
+    private SpiderNodeHolder spiderNodeHolder;
+
+    @GetMapping("/status")
+    public R<SpiderNode> getSpiderTaskStatus() {
+        SpiderNode spiderNode = spiderNodeHolder.getSpiderNode();
+        spiderNode.setTaskCount(NodeCache.spiderTaskCache.size());
+        return R.ok(spiderNode);
     }
 }

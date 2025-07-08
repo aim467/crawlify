@@ -2,6 +2,8 @@ package org.crawlify.platform.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpUtil;
+import com.alibaba.fastjson.JSON;
 import org.crawlify.common.cache.PlatformCache;
 import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.entity.result.R;
@@ -11,12 +13,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import us.codecraft.webmagic.Spider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/")
@@ -28,11 +32,23 @@ public class IndexController {
     @Value("${crawlify.password}")
     private String password;
 
-
+    /**
+     * 手动刷新节点信息
+     * @return
+     */
     @PostMapping("/refreshNode")
     public R<List<SpiderNode>> refreshNode() {
-        // TODO 使用 netty 刷新节点信息
-        return R.ok();
+        PlatformCache.spiderNodeCache.values().forEach(node -> {
+            String nodeId = node.getNodeId();
+            String nodeIp = node.getNodeIp();
+            int nodePort = node.getNodePort();
+            String url = "http://" + nodeIp + ":" + nodePort + "/status";
+            String response = HttpUtil.get(url);
+            R<SpiderNode> ret = JSON.parseObject(response, R.class);
+            PlatformCache.spiderNodeCache.put(nodeId, ret.getData());
+        });
+        List<SpiderNode> collect = new ArrayList<>(PlatformCache.spiderNodeCache.values());
+        return R.ok(collect);
     }
 
     @GetMapping("/nodeList")

@@ -1,5 +1,6 @@
 package org.crawlify.node.cache;
 
+import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.entity.TaskNode;
 import us.codecraft.webmagic.Spider;
 
