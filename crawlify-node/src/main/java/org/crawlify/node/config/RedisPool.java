@@ -17,7 +17,7 @@ public class RedisPool {
         config.setBlockWhenExhausted(true); // 连接耗尽时等待
         config.setMaxWaitMillis(5000);     // 获取连接最大等待时间
 
-        jedisPool = new JedisPool(config, "192.168.1.188", 6379, 2000, null);
+        jedisPool = new JedisPool(config, "localhost", 6379, 2000, null);
     }
 
     public static Jedis getJedis() {

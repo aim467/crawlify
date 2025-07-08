@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import org.crawlify.common.cache.PlatformCache;
 import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.entity.result.R;
@@ -34,21 +35,21 @@ public class IndexController {
 
     /**
      * 手动刷新节点信息
+     *
      * @return
      */
     @PostMapping("/refreshNode")
-    public R<List<SpiderNode>> refreshNode() {
+    public R refreshNode() {
         PlatformCache.spiderNodeCache.values().forEach(node -> {
             String nodeId = node.getNodeId();
             String nodeIp = node.getNodeIp();
             int nodePort = node.getNodePort();
             String url = "http://" + nodeIp + ":" + nodePort + "/status";
             String response = HttpUtil.get(url);
-            R<SpiderNode> ret = JSON.parseObject(response, R.class);
-            PlatformCache.spiderNodeCache.put(nodeId, ret.getData());
+            R<SpiderNode> r = JSON.parseObject(response, new TypeReference<R<SpiderNode>>() {});
+            PlatformCache.spiderNodeCache.put(nodeId, r.getData());
         });
-        List<SpiderNode> collect = new ArrayList<>(PlatformCache.spiderNodeCache.values());
-        return R.ok(collect);
+        return R.ok();
     }
 
     @GetMapping("/nodeList")
