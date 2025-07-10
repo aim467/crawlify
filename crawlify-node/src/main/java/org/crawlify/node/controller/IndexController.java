@@ -98,6 +98,7 @@ public class IndexController {
     public R<SpiderNode> getSpiderTaskStatus() {
         SpiderNode spiderNode = spiderNodeHolder.getSpiderNode();
         spiderNode.setTaskCount(NodeCache.spiderTaskCache.size());
+        spiderNode.setTaskCount(spiderNode.getTaskCount() == null ? 0 : spiderNode.getTaskCount());
         return R.ok(spiderNode);
     }
 }

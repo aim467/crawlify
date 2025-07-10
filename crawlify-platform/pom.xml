@@ -63,7 +63,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>org.crawlify.platform.CrawlifyPlatformApplication</mainClass>
+                    <mainClass>org.crawlify.CrawlifyPlatformApplication</mainClass>
 
                 </configuration>
                 <executions>

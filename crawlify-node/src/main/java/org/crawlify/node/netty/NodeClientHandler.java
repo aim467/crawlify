@@ -126,6 +126,7 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
             SpiderNode spiderNode = spiderNodeHolder.getSpiderNode();
             message.setNodeId(spiderNode.getNodeId());
             spiderNode.setTaskCount(NodeCache.spiderTaskCache.size());
+            spiderNode.setTaskCount(spiderNode.getTaskCount() == null ? 0 : spiderNode.getTaskCount());
             ctx.writeAndFlush(message);
         }
     }

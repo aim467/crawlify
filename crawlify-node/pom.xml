@@ -76,7 +76,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>org.crawlify.node.CrawlifyNodeApplication</mainClass>
+                    <mainClass>org.crawlify.CrawlifyNodeApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
