@@ -10,11 +10,16 @@ import org.crawlify.common.dto.query.SpiderTaskQuery;
 import org.crawlify.common.entity.SpiderNode;
 import org.crawlify.common.entity.SpiderTask;
 import org.crawlify.common.entity.TaskNode;
+import org.crawlify.common.entity.WebsiteLink;
 import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.mapper.SpiderTaskMapper;
 import org.crawlify.common.service.SpiderTaskService;
 import org.crawlify.common.service.TaskNodeService;
+import org.crawlify.common.service.DynamicConfigService;
+import org.crawlify.common.entity.DynamicConfig;
+import org.crawlify.common.dynamic.DynamicCrawler;
+import org.crawlify.common.service.WebsiteLinkService;
 import org.crawlify.common.vo.SpiderTaskListVo;
 import org.crawlify.common.vo.SpiderTaskVo;
 import org.crawlify.common.vo.TaskStatusCount;
@@ -28,19 +33,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import io.netty.channel.Channel;
 import org.crawlify.common.netty.PlatformServerHandler;
 import org.crawlify.common.protocol.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderTask> implements SpiderTaskService {
+
+    private static final Logger log = LoggerFactory.getLogger(SpiderTaskServiceImpl.class);
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
     @Resource
     private TaskNodeService taskNodeService;
+
+    @Resource
+    private DynamicConfigService dynamicConfigService;
+
+    @Resource
+    private WebsiteLinkService websiteLinkService;
 
     @Override
     public R submitTask(SubmitTask submitTask) {
@@ -67,6 +83,40 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         task.setUpdatedAt(LocalDateTime.now());
         task.setWebsiteId(submitTask.getWebsiteId());
         this.save(task);
+
+        // 检查网站是否有动态配置，如果有则先进行动态采集
+        LambdaQueryWrapper<DynamicConfig> configWrapper = new LambdaQueryWrapper<>();
+        configWrapper.eq(DynamicConfig::getWebsiteId, submitTask.getWebsiteId());
+        List<DynamicConfig> dynamicConfigs = dynamicConfigService.list(configWrapper);
+
+        if (!dynamicConfigs.isEmpty()) {
+            log.info("网站ID: {} 检测到 {} 个动态配置，开始执行动态采集", submitTask.getWebsiteId(), dynamicConfigs.size());
+            // 执行动态配置采集
+            for (DynamicConfig config : dynamicConfigs) {
+                try {
+                    log.info("开始执行动态配置采集，配置ID: {}, 配置名称: {}", config.getConfigId(), config.getConfigName());
+                    DynamicCrawler dynamicCrawler = new DynamicCrawler(config);
+                    List<String> crawlResults = dynamicCrawler.crawl();
+                    log.info("动态配置采集完成，配置ID: {}, 采集到 {} 条数据", config.getConfigId(), crawlResults.size());
+                    // 提取到的结果存入到数据库
+                    List<WebsiteLink> collect = crawlResults.parallelStream().map(url -> {
+                        WebsiteLink websiteLink = new WebsiteLink();
+                        websiteLink.setUrl(url);
+                        websiteLink.setExtLink(false);
+                        websiteLink.setWebsiteId(submitTask.getWebsiteId());
+                        websiteLink.setCreatedAt(LocalDateTime.now());
+                        websiteLink.setUrlType(1);
+                        websiteLink.setUpdatedAt(LocalDateTime.now());
+                        return websiteLink;
+                    }).collect(Collectors.toList());
+                    websiteLinkService.saveOrUpdateBatch(collect);
+
+                } catch (Exception e) {
+                    log.error("动态配置采集失败，配置ID: {}, 配置名称: {}, 错误信息: {}",
+                            config.getConfigId(), config.getConfigName(), e.getMessage(), e);
+                }
+            }
+        }
 
         // 使用Netty发送任务
         for (SpiderNode spiderNode : PlatformCache.spiderNodeCache.values()) {
@@ -131,7 +181,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
     }
 
     @Override
-    @Transactional(rollbackFor = { Exception.class })
+    @Transactional(rollbackFor = {Exception.class})
     public R asyncTaskStatus(String taskId) {
         LambdaQueryWrapper<TaskNode> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TaskNode::getTaskId, taskId);
