@@ -10,7 +10,5 @@ public class SubmitTask {
 
     private Integer websiteId;
 
-    private Integer threadNum;
-
     private List<SpiderNode> spiderNodes;
 }

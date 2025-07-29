@@ -121,7 +121,7 @@ public class NodeClientHandler extends ChannelInboundHandlerAdapter {
     @Scheduled(cron = "*/30 * * * * *")
     public void sendHeartbeat() {
         if (ctx != null && ctx.channel().isActive()) {
-            Message message = new Message();;
+            Message message = new Message();
             message.setType(Message.MessageType.HEARTBEAT);
             SpiderNode spiderNode = spiderNodeHolder.getSpiderNode();
             message.setNodeId(spiderNode.getNodeId());

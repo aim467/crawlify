@@ -20,4 +20,6 @@ public class SpiderNode implements Serializable {
     private Integer status;
 
     private Integer taskCount;
+
+    private Integer threadNum;
 }

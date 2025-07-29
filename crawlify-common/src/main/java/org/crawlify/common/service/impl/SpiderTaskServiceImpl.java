@@ -109,7 +109,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
                         websiteLink.setUpdatedAt(LocalDateTime.now());
                         return websiteLink;
                     }).collect(Collectors.toList());
-                    websiteLinkService.saveOrUpdateBatch(collect);
+                    websiteLinkService.batchSaveWebsiteLink(collect);
 
                 } catch (Exception e) {
                     log.error("动态配置采集失败，配置ID: {}, 配置名称: {}, 错误信息: {}",
@@ -119,7 +119,8 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         }
 
         // 使用Netty发送任务
-        for (SpiderNode spiderNode : PlatformCache.spiderNodeCache.values()) {
+        // 使用 submitTask 的 spiderNodes
+        for (SpiderNode spiderNode : submitTask.getSpiderNodes()) {
             if (spiderNode.getStatus() == 0) {
                 continue;
             }
@@ -133,7 +134,7 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
                 taskNode.setCreatedAt(LocalDateTime.now());
                 taskNode.setUpdatedAt(LocalDateTime.now());
                 taskNode.setTaskId(taskId);
-                taskNode.setThreadNum(submitTask.getThreadNum());
+                taskNode.setThreadNum(spiderNode.getThreadNum());
                 taskNode.setWebsiteId(submitTask.getWebsiteId());
                 taskNodeService.save(taskNode);
 
