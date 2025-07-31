@@ -54,71 +54,6 @@ public class DynamicCrawler {
             throw new IllegalArgumentException("pageStart must be non-negative.");
         }
         this.config = config;
-        parseHeaders(); // 初始化时解析 Header
-    }
-
-    /**
-     * 解析配置中的 Header 字符串 (多行 Key: Value 格式)
-     */
-    private void parseHeaders() {
-        // 先设置一个默认的空 Map，防止 NullPointerException
-        config.setParsedHeaders(Collections.emptyMap());
-
-        String rawHeaders = config.getRequestHead();
-
-        if (rawHeaders == null || rawHeaders.trim().isEmpty()) {
-            log.debug("Request head is empty for configId [{}]. No headers will be added.", config.getConfigId());
-            return; // 没有 Header 需要解析
-        }
-
-        Map<String, String> headers = new HashMap<>();
-        try {
-            // 使用正则表达式 \\R 匹配各种换行符 (\n, \r, \r\n 等)
-            String[] lines = rawHeaders.split("\\R");
-
-            for (String line : lines) {
-                String trimmedLine = line.trim();
-                if (trimmedLine.isEmpty()) {
-                    continue; // 跳过空行
-                }
-
-                int colonIndex = trimmedLine.indexOf(':');
-                if (colonIndex > 0) { // 确保 key 不是空的，并且找到了冒号
-                    String key = trimmedLine.substring(0, colonIndex).trim();
-                    String value = trimmedLine.substring(colonIndex + 1).trim();
-
-                    if (!key.isEmpty()) {
-                        // 如果同一个 header key 出现多次，后面的会覆盖前面的
-                        // OkHttp 的 addHeader 允许重复，但这里 Map 结构会覆盖
-                        // 如果需要支持重复 Header，需要将 Map<String, String> 改为 Map<String, List<String>>
-                        // 但对于大多数请求场景，覆盖是可接受的。
-                        headers.put(key, value);
-                        log.trace("Parsed header for configId [{}]: {} -> {}", config.getConfigId(), key, value);
-                    } else {
-                        log.warn("Skipping header line with empty key for configId [{}]: '{}'", config.getConfigId(),
-                                trimmedLine);
-                    }
-                } else {
-                    log.warn("Skipping malformed header line for configId [{}]: '{}'", config.getConfigId(),
-                            trimmedLine);
-                }
-            }
-
-            if (!headers.isEmpty()) {
-                config.setParsedHeaders(headers);
-                log.debug("Successfully parsed {} headers for configId [{}]", headers.size(), config.getConfigId());
-            } else {
-                log.debug("Request head string provided but no valid headers parsed for configId [{}].",
-                        config.getConfigId());
-            }
-
-        } catch (Exception e) {
-            // 捕获潜在的字符串处理异常
-            log.error("Error parsing multi-line request head string for configId [{}]: {}", config.getConfigId(),
-                    rawHeaders, e);
-            // 出错时，保持 parsedHeaders 为空 Map
-            config.setParsedHeaders(Collections.emptyMap());
-        }
     }
 
     /**
@@ -202,9 +137,13 @@ public class DynamicCrawler {
         RequestBody requestBody = null;
 
         // 添加 Headers
-        if (config.getParsedHeaders() != null) {
-            config.getParsedHeaders().forEach(requestBuilder::addHeader);
-            config.getParsedHeaders().put("UserAgent", RandomUserAgent.getRandomUserAgent());
+        if (!CollectionUtils.isEmpty(config.getRequestHead())) {
+            for (Map.Entry<String, Object> entry : config.getRequestHead().entrySet()) {
+                String key = entry.getKey();
+                String value = (String) entry.getValue();
+                requestBuilder.addHeader(key, value);
+            }
+            config.getRequestHead().put("UserAgent", RandomUserAgent.getRandomUserAgent());
         }
 
         // 处理 GET 请求
@@ -220,7 +159,7 @@ public class DynamicCrawler {
                         String.valueOf(pageNum));
             }
             // 猜测 Content-Type，或者让配置提供 Content-Type
-            MediaType mediaType = determineMediaType(config.getParsedHeaders());
+            MediaType mediaType = determineMediaType(config.getRequestHead());
             requestBody = RequestBody.create(bodyContent, mediaType);
             requestBuilder.post(requestBody);
         } else {
@@ -265,8 +204,8 @@ public class DynamicCrawler {
     /**
      * 根据 Headers 推断或提供默认的 MediaType (用于 POST)
      */
-    private MediaType determineMediaType(Map<String, String> headers) {
-        String contentType = headers != null ? headers.getOrDefault("Content-Type", "application/json; charset=utf-8")
+    private MediaType determineMediaType(Map<String, Object> headers) {
+        String contentType = headers != null ? (String) headers.getOrDefault("Content-Type", "application/json; charset=utf-8")
                 : "application/json; charset=utf-8";
         // 尝试从 Content-Type header 解析 MediaType
         MediaType mediaType = MediaType.parse(contentType);

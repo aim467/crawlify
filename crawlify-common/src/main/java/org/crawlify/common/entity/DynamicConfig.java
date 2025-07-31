@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -15,8 +16,8 @@ import java.util.Map;
 /**
  * 网站的动态采集配置
  */
-@TableName("dynamic_config")
 @Data
+@TableName(value = "dynamic_config", autoResultMap = true)
 public class DynamicConfig implements Serializable {
 
     // 网站ID
@@ -48,13 +49,9 @@ public class DynamicConfig implements Serializable {
     private String nextPage;
 
     // 请求头信息，JSON 格式字符串，例如 {"Content-Type":"application/json", "Authorization":"Bearer xxx"}（可选）
-    private String requestHead;
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> requestHead;
 
-
-    // --- 内部处理用 ---
-    // 解析后的请求头，用于内部逻辑处理
-    @TableField(exist = false)
-    private Map<String, String> parsedHeaders;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
