@@ -1,4 +1,4 @@
-/*
+    /*
  Navicat Premium Data Transfer
 
  Source Server         : localhost
@@ -38,6 +38,7 @@ CREATE TABLE `dynamic_config`  (
   `result_clean` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '结果清洗正则表达式',
   `result_list_rule` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '列表获取表达式',
   `detail_url_rule` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '提取详情页链接规则',
+  `parent_link` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '父级链接',
   PRIMARY KEY (`config_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '网站的动态采集配置' ROW_FORMAT = Dynamic;
 

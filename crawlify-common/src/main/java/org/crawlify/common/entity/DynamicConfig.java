@@ -76,4 +76,7 @@ public class DynamicConfig implements Serializable {
 
     // 提取详情页链接规则
     private String detailUrlRule;
+
+    // 父页面链接
+    private String parentLink;
 }

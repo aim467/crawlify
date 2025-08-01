@@ -34,6 +34,8 @@ public class DynamicConfigController {
                 dynamicConfigQuery.getColumnUrl());
         queryWrapper.eq(ObjectUtils.isNotEmpty(dynamicConfigQuery.getWebsiteId()), DynamicConfig::getWebsiteId,
                 dynamicConfigQuery.getWebsiteId());
+        queryWrapper.like(StringUtils.isNotEmpty(dynamicConfigQuery.getParentLink()), DynamicConfig::getParentLink,
+                dynamicConfigQuery.getParentLink());
         Page<DynamicConfig> dynamicConfigPage = dynamicConfigService.page(
                 new Page<>(dynamicConfigQuery.getPage(), dynamicConfigQuery.getSize()), queryWrapper);
         PageResult<DynamicConfig> pageResult = new PageResult<>();

@@ -12,4 +12,6 @@ public class DynamicConfigQuery extends Query {
     private String columnUrl;
 
     private Integer websiteId;
+
+    private String parentLink;
 }
