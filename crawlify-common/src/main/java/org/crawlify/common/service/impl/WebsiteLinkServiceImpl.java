@@ -23,6 +23,8 @@ public class WebsiteLinkServiceImpl extends ServiceImpl<WebsiteLinkMapper, Websi
         wrapper.like(StringUtils.hasText(query.getUrl()), WebsiteLink::getUrl, query.getUrl());
         wrapper.eq(Objects.nonNull(query.getExtLink()), WebsiteLink::getExtLink, query.getExtLink());
         wrapper.eq(Objects.nonNull(query.getUrlType()), WebsiteLink::getUrlType, query.getUrlType());
+        wrapper.lt(StringUtils.hasText(query.getStartTime()), WebsiteLink::getCreatedAt, query.getStartTime());
+        wrapper.gt(StringUtils.hasText(query.getEndTime()), WebsiteLink::getCreatedAt, query.getEndTime());
         wrapper.orderByDesc(WebsiteLink::getCreatedAt);
 
         Page<WebsiteLink> websiteLinkPage = baseMapper.selectPage(new Page<>(query.getPage(), query.getSize()), wrapper);

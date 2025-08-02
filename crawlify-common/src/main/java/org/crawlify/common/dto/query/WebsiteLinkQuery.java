@@ -8,4 +8,8 @@ public class WebsiteLinkQuery extends Query {
     private String url;
     private Boolean extLink;
     private Integer urlType;
+
+    private String startTime;
+
+    private String endTime;
 }
