@@ -14,10 +14,13 @@ import java.time.LocalDateTime;
 @TableName("task_node")
 public class TaskNode implements Serializable {
 
-    /**
-     * 节点id
-     */
+    // 子任务ID
     @TableId(type = IdType.ASSIGN_ID)
+    private String taskNodeId;
+
+    /**
+     * 分发的节点id
+     */
     private String nodeId;
 
     /**

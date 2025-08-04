@@ -128,7 +128,8 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
             Channel channel = PlatformServerHandler.getNodeChannel(spiderNode.getNodeId());
             if (channel != null && channel.isActive()) {
                 TaskNode taskNode = new TaskNode();
-                taskNode.setNodeId(UUID.randomUUID().toString());
+                taskNode.setTaskNodeId(UUID.randomUUID().toString());
+                taskNode.setNodeId(spiderNode.getNodeId());
                 taskNode.setNodeUrl("http://" + spiderNode.getNodeIp() + ":" + spiderNode.getNodePort() + "/");
                 taskNode.setStatus(2);
                 taskNode.setCreatedAt(LocalDateTime.now());
@@ -163,8 +164,10 @@ public class SpiderTaskServiceImpl extends ServiceImpl<SpiderTaskMapper, SpiderT
         List<TaskNode> list = taskNodeService.list(wrapper);
         for (TaskNode taskNode : list) {
             // 通过Netty向node发送STOP消息
-            Channel channel = PlatformServerHandler.getNodeChannel(taskNode.getNodeId());
+            Channel channel = PlatformCache.channelCache.get(taskNode.getNodeId());
+            log.info("Stop task: {}", taskNode.getNodeId());
             if (channel != null && channel.isActive()) {
+                log.info("发送停止请求");
                 Message message = new Message();
                 message.setType(Message.MessageType.STOP);
                 message.setNodeId(taskNode.getNodeId());

@@ -1,7 +1,7 @@
-    /*
+/*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : local
  Source Server Type    : MySQL
  Source Server Version : 80100
  Source Host           : localhost:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80100
  File Encoding         : 65001
 
- Date: 09/05/2025 15:07:49
+ Date: 04/08/2025 17:34:43
 */
 
 SET NAMES utf8mb4;
@@ -38,7 +38,7 @@ CREATE TABLE `dynamic_config`  (
   `result_clean` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '结果清洗正则表达式',
   `result_list_rule` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '列表获取表达式',
   `detail_url_rule` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '提取详情页链接规则',
-  `parent_link` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '父级链接',
+  `parent_link` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '父页链接',
   PRIMARY KEY (`config_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '网站的动态采集配置' ROW_FORMAT = Dynamic;
 
@@ -60,15 +60,16 @@ CREATE TABLE `spider_task`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `task_node`;
 CREATE TABLE `task_node`  (
-  `node_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `status` int NULL DEFAULT NULL,
-  `task_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `website_id` int NULL DEFAULT NULL,
-  `thread_num` int NULL DEFAULT NULL,
-  `node_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `created_at` datetime NULL DEFAULT NULL,
-  `updated_at` datetime NULL DEFAULT NULL,
-  PRIMARY KEY (`node_id`) USING BTREE
+  `node_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '被分发到的爬虫节点ID',
+  `status` int NULL DEFAULT NULL COMMENT '任务运行状态',
+  `task_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '主任务ID',
+  `website_id` int NULL DEFAULT NULL COMMENT '网站ID',
+  `thread_num` int NULL DEFAULT NULL COMMENT '线程数',
+  `node_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '节点url',
+  `created_at` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `updated_at` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `task_node_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '节点任务ID',
+  PRIMARY KEY (`task_node_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -89,7 +90,7 @@ CREATE TABLE `website_info`  (
   `retry_times` int NULL DEFAULT NULL COMMENT '重试次数',
   `cycle_retry_times` int NULL DEFAULT NULL COMMENT '循环重试次数',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for website_link
@@ -105,6 +106,6 @@ CREATE TABLE `website_link`  (
   `ext_link` tinyint NULL DEFAULT NULL COMMENT '外部链接(1=true, 0=false)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `website_link_pk`(`website_id` ASC, `url` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 103007 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 139845 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

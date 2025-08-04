@@ -17,8 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(PlatformServerHandler.class);
 
-    // 存储节点ID和Channel的映射关系
-    private static final Map<String, Channel> nodeChannels = new ConcurrentHashMap<>();
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -44,8 +42,8 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void handleNodeStatus(Message message) {
-       SpiderNode spiderNode = (SpiderNode)  message.getData();
-       PlatformCache.spiderNodeCache.put(spiderNode.getNodeId(), spiderNode);
+        SpiderNode spiderNode = (SpiderNode) message.getData();
+        PlatformCache.spiderNodeCache.put(spiderNode.getNodeId(), spiderNode);
     }
 
     private void handleRegister(ChannelHandlerContext ctx, Message message) {
@@ -57,7 +55,7 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
         PlatformCache.spiderNodeCache.put(nodeId, node);
 
         // 保存Channel
-        nodeChannels.put(nodeId, ctx.channel());
+        PlatformCache.channelCache.put(nodeId, ctx.channel());
 
         // 发送确认消息
         Message response = new Message();
@@ -92,13 +90,13 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
             if (node != null) {
                 node.setStatus(0);
             }
-            nodeChannels.remove(nodeId);
+            PlatformCache.channelCache.remove(nodeId);
             logger.info("Node disconnected: {}", nodeId);
         }
     }
 
     private String getNodeIdByChannel(Channel channel) {
-        for (Map.Entry<String, Channel> entry : nodeChannels.entrySet()) {
+        for (Map.Entry<String, Channel> entry : PlatformCache.channelCache.entrySet()) {
             if (entry.getValue() == channel) {
                 return entry.getKey();
             }
@@ -107,6 +105,6 @@ public class PlatformServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     public static Channel getNodeChannel(String nodeId) {
-        return nodeChannels.get(nodeId);
+        return PlatformCache.channelCache.get(nodeId);
     }
 }
