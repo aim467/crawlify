@@ -21,12 +21,9 @@ public class TaskNodeServiceImpl extends ServiceImpl<TaskNodeMapper, TaskNode> i
     @Autowired
     private SpiderTaskService spiderTaskService;
 
-    @Autowired
-    private WebsiteInfoService websiteInfoService;
-
     @Override
-    public void stopTaskNode(String nodeId) {
-        TaskNode byId = getById(nodeId);
+    public void stopTaskNode(String taskNodeId) {
+        TaskNode byId = getById(taskNodeId);
         byId.setStatus(4);
         byId.setUpdatedAt(LocalDateTime.now());
         spiderTaskService.asyncTaskStatus(byId.getTaskId());

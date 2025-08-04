@@ -31,8 +31,8 @@ public class TaskNodeController {
     }
 
     @GetMapping("/stop")
-    public R stopTaskNode(String nodeId) {
-        taskNodeService.stopTaskNode(nodeId);
+    public R stopTaskNode(String taskNodeId) {
+        taskNodeService.stopTaskNode(taskNodeId);
         return R.ok();
     }
 }
