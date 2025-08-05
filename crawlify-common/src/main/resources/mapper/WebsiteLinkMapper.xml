@@ -12,4 +12,34 @@
         </foreach>
         on duplicate key update updated_at = values(updated_at)
     </insert>
+
+
+    <select id="exportLinkExcel" resultType="org.crawlify.common.excel.WebsiteLinkExcel">
+        select
+        # 生成序列号
+        row_number() over (order by website_link.id) as id,
+        website_link.url,
+        website_link.ext_link as extLink,
+        website_link.url_type as urlType,
+        website_link.created_at,
+        website_info.name as websiteName,
+        website_link.updated_at
+        from website_link left join website_info on website_link.website_id=website_info.id
+        where website_id = #{websiteId}
+        <if test="url != null">
+            and url like concat('%', #{url}, '%')
+        </if>
+        <if test="extLink != null">
+            and ext_link = #{extLink}
+        </if>
+        <if test="urlType != null">
+            and url_type = #{urlType}
+        </if>
+        <if test="startTime != null">
+            and website_link.created_at >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            and website_link.created_at &lt;= #{endTime}
+        </if>
+    </select>
 </mapper>

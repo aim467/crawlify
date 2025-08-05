@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.WebsiteLink;
 import org.crawlify.common.dto.query.WebsiteLinkQuery;
+import org.crawlify.common.excel.WebsiteLinkExcel;
 import org.crawlify.common.mapper.WebsiteLinkMapper;
 import org.crawlify.common.service.WebsiteLinkService;
 import org.springframework.stereotype.Service;
@@ -40,5 +41,10 @@ public class WebsiteLinkServiceImpl extends ServiceImpl<WebsiteLinkMapper, Websi
     @Override
     public void batchSaveWebsiteLink(List<WebsiteLink> websiteLinks) {
         baseMapper.batchInsertOrUpdate(websiteLinks);
+    }
+
+    @Override
+    public List<WebsiteLinkExcel> exportLinkExcel(WebsiteLinkQuery query) {
+        return baseMapper.exportLinkExcel(query);
     }
 }

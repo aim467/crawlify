@@ -10,11 +10,11 @@ import cn.idev.excel.metadata.property.ExcelContentProperty;
 /**
  * 外链转换器
  */
-public class ExtLinkConverter implements Converter<Integer> {
+public class ExtLinkConverter implements Converter<Boolean> {
 
     @Override
     public Class<?> supportJavaTypeKey() {
-        return Integer.class;
+        return Boolean.class;
     }
 
     @Override
@@ -23,15 +23,15 @@ public class ExtLinkConverter implements Converter<Integer> {
     }
 
     @Override
-    public Integer convertToJavaData(ReadCellData<?> cellData, ExcelContentProperty contentProperty,
+    public Boolean convertToJavaData(ReadCellData<?> cellData, ExcelContentProperty contentProperty,
                                      GlobalConfiguration globalConfiguration) {
         String extLinkDesc = cellData.getStringValue();
-        return "是".equals(extLinkDesc) ? 1 : 0;
+        return "是".equals(extLinkDesc) ? Boolean.TRUE : Boolean.FALSE;
     }
 
     @Override
-    public WriteCellData<String> convertToExcelData(Integer value, ExcelContentProperty contentProperty,
+    public WriteCellData<String> convertToExcelData(Boolean value, ExcelContentProperty contentProperty,
                                                     GlobalConfiguration globalConfiguration) {
-        return new WriteCellData<>(value == 1 ? "是" : "否");
+        return new WriteCellData<>(Boolean.TRUE.equals(value) ? "是" : "否");
     }
 }

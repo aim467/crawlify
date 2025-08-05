@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import org.crawlify.common.entity.WebsiteLink;
 import org.crawlify.common.dto.query.WebsiteLinkQuery;
 import org.crawlify.common.entity.result.PageResult;
+import org.crawlify.common.excel.WebsiteLinkExcel;
 
 import java.util.List;
 
@@ -11,4 +12,7 @@ public interface WebsiteLinkService extends IService<WebsiteLink> {
     PageResult<WebsiteLink> queryLink(WebsiteLinkQuery query);
 
     void batchSaveWebsiteLink(List<WebsiteLink> websiteLinks);
+
+
+    List<WebsiteLinkExcel> exportLinkExcel(WebsiteLinkQuery query);
 }
