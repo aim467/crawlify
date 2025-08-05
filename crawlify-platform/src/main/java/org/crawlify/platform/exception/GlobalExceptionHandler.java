@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
         return R.fail(401, message);
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler
+    @ExceptionHandler
     public R handlerNotRoleException(NotRoleException e) {
         return R.fail(403, "无此角色：" + e.getRole());
     }
@@ -66,5 +66,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public R handlerNotSafeException(NotSafeException e) {
         return R.fail(401, "二级认证异常：" + e.getMessage());
+    }
+
+    @ExceptionHandler(SystemException.class)
+    public R handlerSystemException(SystemException e) {
+        return R.fail(e.getCode(), e.getMessage());
     }
 }

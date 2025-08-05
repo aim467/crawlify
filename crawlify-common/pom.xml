@@ -123,6 +123,12 @@
             <artifactId>webmagic-extension</artifactId>
             <version>1.0.4-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>cn.idev.excel</groupId>
+            <artifactId>fastexcel</artifactId>
+            <version>1.2.0 </version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
