@@ -1,9 +1,6 @@
 package org.crawlify.common.dynamic;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson2.JSON;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import okhttp3.*; // OkHttp 核心类
 import org.crawlify.common.entity.DynamicConfig;
@@ -21,7 +18,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,7 +28,6 @@ import java.util.regex.Pattern;
 public class DynamicCrawler {
 
     private static final Logger log = LoggerFactory.getLogger(DynamicCrawler.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper(); // 用于解析 Header JSON
     private static final OkHttpClient client;
 
     static {
@@ -205,7 +200,8 @@ public class DynamicCrawler {
      * 根据 Headers 推断或提供默认的 MediaType (用于 POST)
      */
     private MediaType determineMediaType(Map<String, Object> headers) {
-        String contentType = headers != null ? (String) headers.getOrDefault("Content-Type", "application/json; charset=utf-8")
+        String contentType = headers != null
+                ? (String) headers.getOrDefault("Content-Type", "application/json; charset=utf-8")
                 : "application/json; charset=utf-8";
         // 尝试从 Content-Type header 解析 MediaType
         MediaType mediaType = MediaType.parse(contentType);
