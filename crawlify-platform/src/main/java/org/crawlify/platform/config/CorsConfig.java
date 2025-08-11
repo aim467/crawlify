@@ -25,9 +25,9 @@ public class CorsConfig implements WebMvcConfigurer {
     @Bean
     public SaCorsHandleFunction corsHandle() {
         return (req, res, sto) -> {
-            res.
+            res
                     // 允许指定域访问跨域资源
-                            setHeader("Access-Control-Allow-Origin", "*")
+                    .setHeader("Access-Control-Allow-Origin", "*")
                     // 允许所有请求方式
                     .setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT")
                     // 有效时间

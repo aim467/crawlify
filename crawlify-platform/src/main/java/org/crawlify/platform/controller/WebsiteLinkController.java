@@ -1,7 +1,6 @@
 package org.crawlify.platform.controller;
 
 import cn.idev.excel.FastExcel;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.crawlify.common.entity.result.PageResult;
 import org.crawlify.common.entity.WebsiteLink;
@@ -12,17 +11,11 @@ import org.crawlify.common.excel.handler.ExtLinkConverter;
 import org.crawlify.common.excel.handler.UrlTypeConverter;
 import org.crawlify.common.service.WebsiteLinkService;
 import org.crawlify.platform.exception.SystemException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import cn.idev.excel.EasyExcel;
-import cn.idev.excel.ExcelWriter;
-import cn.idev.excel.write.metadata.WriteSheet;
-
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -31,7 +24,7 @@ import java.util.*;
 @RequestMapping("/websiteLink")
 public class WebsiteLinkController {
 
-    @Autowired
+    @Resource
     private WebsiteLinkService websiteLinkService;
 
     @PostMapping

@@ -1,5 +1,10 @@
 package org.crawlify.platform.exception;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class SystemException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
@@ -17,23 +22,6 @@ public class SystemException extends RuntimeException {
     public SystemException(String msg) {
         super(msg);
         this.code = 500;
-        this.msg = msg;
-    }
-
-
-    public Integer getCode() {
-        return code;
-    }
-
-    public void setCode(Integer code) {
-        this.code = code;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
         this.msg = msg;
     }
 }
