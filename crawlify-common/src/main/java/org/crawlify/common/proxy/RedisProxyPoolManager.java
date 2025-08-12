@@ -1,5 +1,7 @@
 package org.crawlify.common.proxy;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -12,6 +14,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -21,6 +24,7 @@ import java.util.concurrent.*;
  * 注意：这个类本身不再是单例，因为每个爬虫实例都可以创建自己的管理器，
  * 但它们通过 Redis 连接到的是同一个共享的池。
  */
+@Slf4j
 public class RedisProxyPoolManager {
 
     // --- Redis Key 定义 ---
@@ -56,7 +60,7 @@ public class RedisProxyPoolManager {
 
     /**
      * 从 Redis 可用池中获取一个代理
-     * 
+     *
      * @return 代理字符串 "host:port"，如果池为空则返回 null
      */
     public String getProxy() {
@@ -94,28 +98,28 @@ public class RedisProxyPoolManager {
             if (jedis.zcard(KEY_VALID_PROXY_ZSET) < MIN_VALID_POOL_SIZE) {
                 // 尝试获取分布式锁
                 if (tryLock(jedis)) {
-                    System.out.println("成功获取分布式锁，开始执行IP补充任务...");
+                    log.info("成功获取分布式锁，开始执行IP补充任务...");
                     try {
                         // 再次检查API调用频率 (虽然有锁，但最好还是检查一下)
                         String lastRefillTimeStr = jedis.get("proxy:last_refill_time");
                         long lastRefillTime = lastRefillTimeStr == null ? 0 : Long.parseLong(lastRefillTimeStr);
                         if (System.currentTimeMillis() - lastRefillTime < API_CALL_INTERVAL_MS) {
-                            System.out.println("API调用CD中，本次跳过补充。");
+                            log.info("API调用频率过高，请稍后再试。");
                             return;
                         }
 
-                        List<String> newProxies = mockFetchFromProxyProvider();
-                        if (newProxies != null && !newProxies.isEmpty()) {
-                            System.out.println("从API获取 " + newProxies.size() + " 个新IP，加入原始队列。");
-                            // 使用 pipeline 批量加入 Set
+                        List<ProxyInfo> newProxies = ProxySource.fetchProxiesFromKuaiDaiLi();
+                        if (!CollectionUtils.isEmpty(newProxies)) {
                             jedis.sadd(KEY_RAW_PROXY_SET, newProxies.toArray(new String[0]));
                             jedis.set("proxy:last_refill_time", String.valueOf(System.currentTimeMillis()));
                         }
                     } finally {
                         // 释放锁
                         unlock(jedis);
-                        System.out.println("IP补充任务完成，释放分布式锁。");
+                        log.info("IP补充任务完成。");
                     }
+                } else {
+                    log.info("IP补充任务被其他实例占用，跳过。");
                 }
             }
         }
@@ -180,12 +184,12 @@ public class RedisProxyPoolManager {
         try (Jedis jedis = jedisPool.getResource()) {
             long rawSize = jedis.scard(KEY_RAW_PROXY_SET);
             long validSize = jedis.zcard(KEY_VALID_PROXY_ZSET);
-            System.out.printf("[Redis状态监控] 原始池大小: %d, 可用池大小: %d\n", rawSize, validSize);
+            log.info("[Redis状态监控] 原始池大小: {}, 可用池大小: {}", rawSize, validSize);
         }
     }
 
     public void shutdown() {
-        System.out.println("正在关闭代理池管理器...");
+        log.info("正在关闭代理池管理器...");
         scheduler.shutdown();
         validatorExecutor.shutdown();
         try {
@@ -198,23 +202,9 @@ public class RedisProxyPoolManager {
             validatorExecutor.shutdownNow();
         }
         jedisPool.close();
-        System.out.println("代理池管理器已关闭。");
+        log.info("代理池管理器已关闭。");
     }
 
-    private List<String> mockFetchFromProxyProvider() {
-        System.out.println("... 正在向代理服务商发起请求 (模拟) ...");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        List<String> proxies = new ArrayList<>();
-        int baseIp = (int) (Math.random() * 200);
-        for (int i = 0; i < 100; i++) { // 每次获取更多IP
-            proxies.add("192.168." + baseIp + "." + (50 + i) + ":" + (9000 + i));
-        }
-        return proxies;
-    }
 
     /**
      * 主程序，演示如何使用
@@ -231,7 +221,7 @@ public class RedisProxyPoolManager {
                 while (!Thread.currentThread().isInterrupted()) {
                     String proxy = manager.getProxy();
                     if (proxy != null) {
-                        System.out.println("爬虫 [" + crawlerId + "] 获取到代理: " + proxy + "，开始执行任务...");
+                        log.info("爬虫 [{}] 获取到代理: {}，开始执行任务...", crawlerId, proxy);
                     }
                     try {
                         Thread.sleep(ThreadLocalRandom.current().nextInt(800, 2000));
@@ -243,9 +233,10 @@ public class RedisProxyPoolManager {
         }
 
         // 让演示运行2分钟
+        log.info("--- 正在运行2分钟 ---");
         Thread.sleep(2 * 60 * 1000);
 
-        System.out.println("--- 正在关闭系统 ---");
+        log.info("--- 正在关闭系统 ---");
         crawlerExecutor.shutdownNow();
         manager.shutdown();
     }

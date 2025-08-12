@@ -21,6 +21,7 @@ public class ProxyInfo {
         INVALID   // 无效
     }
 
+
     public ProxyInfo(String host, int port) {
         this.host = host;
         this.port = port;

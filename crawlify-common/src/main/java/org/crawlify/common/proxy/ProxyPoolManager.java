@@ -95,17 +95,14 @@ public class ProxyPoolManager {
                 if (now - lastRefillTimestamp < API_CALL_INTERVAL_MS) {
                     return; // API调用CD中
                 }
-                // TODO: 从代理提供者获取代理列表
-                List<String> newProxies = mockFetchFromProxyProvider();
+                List<ProxyInfo> newProxies = ProxySource.fetchProxiesFromKuaiDaiLi();
                 if (CollectionUtils.isEmpty(newProxies)) {
                     return;
                 }
                 lastRefillTimestamp = System.currentTimeMillis();
                 logger.info("成功从API获取 {} 个新IP，加入原始队列等待验证。", newProxies.size());
                 try {
-                    for (String proxyStr : newProxies) {
-                        String[] parts = proxyStr.split(":");
-                        ProxyInfo proxyInfo = new ProxyInfo(parts[0], Integer.parseInt(parts[1]));
+                    for (ProxyInfo proxyInfo : newProxies) {
                         if (rawProxyQueue.offer(proxyInfo)) {
                             // 每有一个新的未验证IP入队，就提交一个验证任务
                             validatorExecutor.submit(() -> validateProxy(proxyInfo));
@@ -150,25 +147,7 @@ public class ProxyPoolManager {
         logger.info("[状态监控] 原始池大小: {}, 可用池大小: {}", rawProxyQueue.size(), validProxyQueue.size());
     }
 
-    /**
-     * 后续替换成实际的接口
-     *
-     * @return
-     */
-    private List<String> mockFetchFromProxyProvider() {
-        // ... 模拟API调用 ...
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        List<String> proxies = new ArrayList<>();
-        int baseIp = (int) (Math.random() * 200);
-        for (int i = 0; i < 50; i++) { // 每次获取更多IP，因为不是所有IP都可用
-            proxies.add("192.168." + baseIp + "." + (100 + i) + ":" + (8000 + i));
-        }
-        return proxies;
-    }
+
 
     public void shutdown() {
         logger.info("正在关闭代理池管理器...");
