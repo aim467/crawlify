@@ -27,11 +27,6 @@ public class WebsiteLinkController {
     @Resource
     private WebsiteLinkService websiteLinkService;
 
-    @PostMapping
-    public boolean save(@RequestBody WebsiteLink websiteLink) {
-        return websiteLinkService.save(websiteLink);
-    }
-
     @PutMapping
     public boolean update(@RequestBody WebsiteLink websiteLink) {
         return websiteLinkService.updateById(websiteLink);
@@ -40,11 +35,6 @@ public class WebsiteLinkController {
     @DeleteMapping("/{id}")
     public boolean delete(@PathVariable Long id) {
         return websiteLinkService.removeById(id);
-    }
-
-    @GetMapping("/{id}")
-    public WebsiteLink getById(@PathVariable Long id) {
-        return websiteLinkService.getById(id);
     }
 
     @GetMapping("/list")
@@ -71,16 +61,21 @@ public class WebsiteLinkController {
 
             // 使用 try-with-resources 显式管理流（若 FastExcel 支持）
             // 或调整 autoCloseStream 为 FALSE（需手动关闭流）
-            FastExcel.write(response.getOutputStream(), WebsiteLinkExcel.class)
-                    .registerConverter(new UrlTypeConverter())
-                    .registerConverter(new ExtLinkConverter())
-                    .autoCloseStream(Boolean.TRUE) // 保持自动关闭（默认可能已正确处理）
-                    .sheet("链接列表")
-                    .doWrite(links);
+            FastExcel.write(response.getOutputStream(), WebsiteLinkExcel.class).registerConverter(new UrlTypeConverter()).registerConverter(new ExtLinkConverter()).autoCloseStream(Boolean.TRUE) // 保持自动关闭（默认可能已正确处理）
+                    .sheet("链接列表").doWrite(links);
 
         } catch (Exception e) {
             log.error("导出失败：{}", e.getMessage());
             throw new SystemException("导出失败：" + e.getMessage());
         }
+    }
+
+    @DeleteMapping("/clear/{websiteId}")
+    public R<Boolean> clearByWebsiteId(@PathVariable Integer websiteId) {
+        if (websiteId == null) {
+            throw new SystemException("网站ID不能为空");
+        }
+
+        return R.ok(websiteLinkService.lambdaUpdate().eq(WebsiteLink::getWebsiteId, websiteId).remove());
     }
 }
