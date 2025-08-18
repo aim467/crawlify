@@ -58,11 +58,12 @@ public class WebsiteLinkController {
         try {
             List<WebsiteLinkExcel> links = websiteLinkService.exportLinkExcel(query);
             links = CollectionUtils.isEmpty(links) ? Collections.emptyList() : links;
-
-            // 使用 try-with-resources 显式管理流（若 FastExcel 支持）
-            // 或调整 autoCloseStream 为 FALSE（需手动关闭流）
-            FastExcel.write(response.getOutputStream(), WebsiteLinkExcel.class).registerConverter(new UrlTypeConverter()).registerConverter(new ExtLinkConverter()).autoCloseStream(Boolean.TRUE) // 保持自动关闭（默认可能已正确处理）
-                    .sheet("链接列表").doWrite(links);
+            FastExcel.write(response.getOutputStream(), WebsiteLinkExcel.class)
+                    .registerConverter(new UrlTypeConverter())
+                    .registerConverter(new ExtLinkConverter())
+                    .autoCloseStream(Boolean.TRUE) // 保持自动关闭（默认可能已正确处理）
+                    .sheet("链接列表")
+                    .doWrite(links);
 
         } catch (Exception e) {
             log.error("导出失败：{}", e.getMessage());
