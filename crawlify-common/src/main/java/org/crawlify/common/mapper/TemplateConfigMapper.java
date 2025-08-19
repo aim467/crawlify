@@ -1,0 +1,7 @@
+package org.crawlify.common.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.crawlify.common.entity.TemplateConfig;
+
+public interface TemplateConfigMapper extends BaseMapper<TemplateConfig> {
+}
