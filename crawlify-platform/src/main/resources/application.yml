@@ -60,3 +60,4 @@ sa-token:
 crawlify:
   username: admin
   password: 123456
+  script-path-prefix: D:/script/

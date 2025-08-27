@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/api/template-config")
+@RequestMapping("/template/config")
 public class TemplateConfigController {
 
     @Autowired
@@ -63,5 +63,14 @@ public class TemplateConfigController {
     @DeleteMapping("/{id}")
     public R<Boolean> delete(@PathVariable String id) {
         return R.ok(templateConfigService.removeById(id));
+    }
+
+
+    /**
+     * 保存脚本
+     */
+    @PostMapping("/script")
+    public R saveScript(@RequestBody TemplateConfig templateConfig) {
+        return templateConfigService.saveScript(templateConfig);
     }
 }

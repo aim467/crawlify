@@ -85,4 +85,17 @@ public class TemplateConfig implements Serializable {
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
     private List<Map<String, String>> fieldRules;
+
+    /**
+     * 是否使用脚本
+     */
+    private Boolean useScript;
+
+    /**
+     * 代码存放路径
+     */
+    private String scriptPath;
+
+    @TableField(exist = false)
+    private String scriptContent;
 }

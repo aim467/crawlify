@@ -10,7 +10,6 @@ import cn.idev.excel.enums.poi.FillPatternTypeEnum;
 import cn.idev.excel.enums.poi.HorizontalAlignmentEnum;
 import cn.idev.excel.enums.poi.VerticalAlignmentEnum;
 import lombok.Data;
-import org.apache.poi.ss.usermodel.FillPatternType;
 import org.crawlify.common.excel.handler.ExtLinkConverter;
 import org.crawlify.common.excel.handler.UrlTypeConverter;
 

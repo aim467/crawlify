@@ -1,7 +1,7 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : local
+ Source Server         : localhost
  Source Server Type    : MySQL
  Source Server Version : 80100
  Source Host           : localhost:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80100
  File Encoding         : 65001
 
- Date: 04/08/2025 17:34:43
+ Date: 27/08/2025 16:32:29
 */
 
 SET NAMES utf8mb4;
@@ -73,6 +73,32 @@ CREATE TABLE `task_node`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Table structure for template_config
+-- ----------------------------
+DROP TABLE IF EXISTS `template_config`;
+CREATE TABLE `template_config`  (
+  `config_id` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'uuid()' COMMENT '配置标识，用于唯一追踪某个爬虫配置',
+  `config_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '配置名称',
+  `column_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '基础 URL，第一页或无分页时的请求地址（必填）',
+  `request_type` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '请求类型，支持 GET 或 POST（必填）',
+  `request_body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT 'POST 请求时的请求体模板，可包含占位符 <pageNum>（可选）',
+  `page_start` int NOT NULL COMMENT '起始页码，通常是 0 或 1（必填）',
+  `page_len` int NOT NULL COMMENT '最大页码或总页数，用于控制分页循环条件（必填）',
+  `next_page` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '下一页 URL 模板，包含占位符 <pageNum>（可选）',
+  `request_head` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '请求头信息（JSON 格式）',
+  `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `result_type` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '结果类型 json/xml',
+  `result_clean` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '结果清洗正则表达式',
+  `result_list_rule` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '列表获取表达式',
+  `parent_link` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '父页面链接',
+  `field_rules` json NULL COMMENT '提取字段规则',
+  `use_script` tinyint NULL DEFAULT NULL COMMENT '是否使用脚本',
+  `script_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '脚本路径',
+  PRIMARY KEY (`config_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
 -- Table structure for website_info
 -- ----------------------------
 DROP TABLE IF EXISTS `website_info`;
@@ -90,7 +116,7 @@ CREATE TABLE `website_info`  (
   `retry_times` int NULL DEFAULT NULL COMMENT '重试次数',
   `cycle_retry_times` int NULL DEFAULT NULL COMMENT '循环重试次数',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 33 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for website_link
@@ -106,35 +132,6 @@ CREATE TABLE `website_link`  (
   `ext_link` tinyint NULL DEFAULT NULL COMMENT '外部链接(1=true, 0=false)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `website_link_pk`(`website_id` ASC, `url` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 139845 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
--- ----------------------------
--- Table structure for template_config
--- ----------------------------
-DROP TABLE IF EXISTS `template_config`;
--- auto-generated definition
-create table template_config
-(
-    config_id        varchar(36) default 'uuid()'          not null comment '配置标识，用于唯一追踪某个爬虫配置'
-        primary key,
-    config_name      varchar(255)                          null comment '配置名称',
-    column_url       varchar(1024)                         not null comment '基础 URL，第一页或无分页时的请求地址（必填）',
-    request_type     varchar(10)                           not null comment '请求类型，支持 GET 或 POST（必填）',
-    request_body     text                                  null comment 'POST 请求时的请求体模板，可包含占位符 <pageNum>（可选）',
-    page_start       int                                   not null comment '起始页码，通常是 0 或 1（必填）',
-    page_len         int                                   not null comment '最大页码或总页数，用于控制分页循环条件（必填）',
-    next_page        varchar(1024)                         null comment '下一页 URL 模板，包含占位符 <pageNum>（可选）',
-    request_head     text                                  null comment '请求头信息（JSON 格式）',
-    created_at       datetime    default CURRENT_TIMESTAMP null comment '创建时间',
-    updated_at       datetime    default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
-    result_type      varchar(10)                           null comment '结果类型 json/xml',
-    result_clean     varchar(255)                          null comment '结果清洗正则表达式',
-    result_list_rule varchar(255)                          null comment '列表获取表达式',
-    parent_link      varchar(255)                          null comment '父页面链接',
-    field_rules      json                                  null comment '提取字段规则',
-    primary key (`config_id`)  using btree
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 143555 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

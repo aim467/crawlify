@@ -26,7 +26,6 @@ public class AnonymousInterceptor implements HandlerInterceptor {
             String headerValue = request.getHeader(HEADER_NAME);
             if (headerValue == null || headerValue.isEmpty() || !headerValue.equals("crawlify_node")) {
                 response.setStatus(HttpServletResponse.SC_OK);
-                // 返回json {"msg": "invalid request", "code": 400}
                 response.setContentType("application/json");
                 response.getWriter().write("{\"msg\": \"invalid request\", \"code\": 400}");
                 return false; // 拦截请求
