@@ -45,6 +45,7 @@ public class TemplateConfigController {
     public R<Boolean> add(@RequestBody TemplateConfig templateConfig) {
         templateConfig.setCreatedAt(LocalDateTime.now());
         templateConfig.setUpdatedAt(LocalDateTime.now());
+        // 脚本字段不需要插入
         return R.ok(templateConfigService.save(templateConfig));
     }
 
@@ -69,8 +70,17 @@ public class TemplateConfigController {
     /**
      * 保存脚本
      */
-    @PostMapping("/script")
+    @PostMapping("/save/script")
     public R saveScript(@RequestBody TemplateConfig templateConfig) {
         return templateConfigService.saveScript(templateConfig);
+    }
+
+
+    /**
+     * 获取脚本
+     */
+    @GetMapping("/get/script")
+    public R<String> getScript(@RequestParam String configId) {
+        return templateConfigService.getScript(configId);
     }
 }

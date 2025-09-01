@@ -10,4 +10,6 @@ public interface TemplateConfigService extends IService<TemplateConfig> {
     R runScript(TemplateConfig templateConfig);
 
     R stopScript(TemplateConfig templateConfig);
+
+    R<String> getScript(String configId);
 }

@@ -1,6 +1,7 @@
 package org.crawlify.common.entity;
 
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -94,6 +95,7 @@ public class TemplateConfig implements Serializable {
     /**
      * 代码存放路径
      */
+    @TableField(updateStrategy = FieldStrategy.NOT_EMPTY)
     private String scriptPath;
 
     @TableField(exist = false)
