@@ -93,7 +93,7 @@ CREATE TABLE `template_config`  (
   `result_list_rule` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '列表获取表达式',
   `parent_link` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '父页面链接',
   `field_rules` json NULL COMMENT '提取字段规则',
-  `use_script` tinyint NULL DEFAULT NULL COMMENT '是否使用脚本',
+  `use_script` tinyint NULL DEFAULT 0 COMMENT '是否使用脚本',
   `script_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '脚本路径',
   PRIMARY KEY (`config_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
