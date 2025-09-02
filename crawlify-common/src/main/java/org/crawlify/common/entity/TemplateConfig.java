@@ -100,4 +100,14 @@ public class TemplateConfig implements Serializable {
 
     @TableField(exist = false)
     private String scriptContent;
+
+
+    /**
+     * 脚本类型
+     * jar
+     * groovy
+     * python
+     * ....
+     */
+    private String scriptType;
 }
