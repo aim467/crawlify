@@ -6,7 +6,7 @@ import org.pf4j.ExtensionPoint;
 import java.util.Map;
 
 @Extension
-public interface CrawliyPlugin extends ExtensionPoint {
+public interface CrawlifyPlugin extends ExtensionPoint {
 
     /**
      * 数据采集，插件采集到数据之后，统一返回数据，交由主程序处理

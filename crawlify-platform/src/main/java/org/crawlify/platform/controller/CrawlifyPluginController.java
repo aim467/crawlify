@@ -5,7 +5,7 @@ import org.crawlify.common.entity.TemplateConfig;
 import org.crawlify.common.entity.result.R;
 import org.crawlify.common.service.TemplateConfigService;
 import org.crawlify.common.utils.CrawlifyPluginUtils;
-import org.crawlify.plugin.CrawliyPlugin;
+import org.crawlify.plugin.CrawlifyPlugin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,7 +24,7 @@ public class CrawlifyPluginController {
     private TemplateConfigService templateConfigService;
 
     @GetMapping("/list")
-    public R<List<CrawliyPlugin>> list() {
+    public R<List<CrawlifyPlugin>> list() {
         return R.ok(crawlifyPluginUtils.listPlugins());
     }
 

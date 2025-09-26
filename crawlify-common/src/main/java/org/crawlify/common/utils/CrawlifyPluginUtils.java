@@ -2,7 +2,7 @@ package org.crawlify.common.utils;
 
 
 import org.crawlify.common.entity.TemplateConfig;
-import org.crawlify.plugin.CrawliyPlugin;
+import org.crawlify.plugin.CrawlifyPlugin;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
 
@@ -28,15 +28,15 @@ public class CrawlifyPluginUtils {
     /**
      * 列出所有插件
      */
-    public List<CrawliyPlugin> listPlugins() {
-        return pluginManager.getExtensions(CrawliyPlugin.class);
+    public List<CrawlifyPlugin> listPlugins() {
+        return pluginManager.getExtensions(CrawlifyPlugin.class);
     }
 
     /**
      * 运行指定插件
      */
     public Map<String, Object> runPlugin(String pluginId, TemplateConfig templateConfig) {
-        for (CrawliyPlugin plugin : listPlugins()) {
+        for (CrawlifyPlugin plugin : listPlugins()) {
             if (plugin.getClass().getName().equals(pluginId)) {
                 return plugin.crawl();
             }
