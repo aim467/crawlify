@@ -61,3 +61,4 @@ crawlify:
   username: admin
   password: 123456
   script-path-prefix: D:/script/
+  jar-path-prefix: D:/jar/
